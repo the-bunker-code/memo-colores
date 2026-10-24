@@ -21,6 +21,8 @@
     <title>Memo Colores</title>
 
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
 
     <!-- Letra redondeada, servida desde este sitio: no se envía nada a terceros. -->
     <link rel="preload" href="fonts/fredoka-latin-v17.woff2" as="font" type="font/woff2" crossorigin />
@@ -29,7 +31,7 @@
     <!--
       modulepreload: el navegador descarga todos los módulos a la vez, en vez de
       descubrirlos de a uno (main → game → rules → config). Si agregas un módulo
-      a js/, agrégalo también aquí.
+      a js/, agrégalo también aquí y en sw.js.
     -->
     <link rel="modulepreload" href="js/main.js" />
     <link rel="modulepreload" href="js/game.js" />
@@ -41,6 +43,7 @@
     <link rel="modulepreload" href="js/storage.js" />
     <link rel="modulepreload" href="js/icons.js" />
     <link rel="modulepreload" href="js/mascot.js" />
+    <link rel="modulepreload" href="js/dom.js" />
     <link rel="modulepreload" href="js/settings-panel.js" />
   </head>
   <body>

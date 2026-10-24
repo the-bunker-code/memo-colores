@@ -47,3 +47,8 @@ function boot() {
 }
 
 boot();
+
+// Offline (sw.js). Requiere contexto seguro; si falla, el juego solo pierde el modo offline.
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}

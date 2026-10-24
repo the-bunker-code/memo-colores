@@ -16,6 +16,8 @@ export const test = base.extend({
     /** @type {string[]} */
     const consoleProblems = [];
     page.on('console', (message) => {
+      // Este aviso lo escribe Playwright cuando bloquea el service worker (ver playwright.config.js).
+      if (message.text() === 'Service Worker registration blocked by Playwright') return;
       if (message.type() === 'error' || message.type() === 'warning') consoleProblems.push(message.text());
     });
     page.on('pageerror', (error) => consoleProblems.push(error.message));
