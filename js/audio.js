@@ -8,12 +8,17 @@
 const VOICE_LANGS = ['es-MX', 'es-US', 'es-419', 'es-PE', 'es-CO', 'es-AR', 'es-ES', 'es'];
 const MAX_SPEECH_MS = 5000;
 
+/** @type {AudioContext | null} */
 let audioContext = null;
+/** @type {SpeechSynthesisVoice | null} */
 let chosenVoice = null;
 let voiceEnabled = true;
 let soundEnabled = true;
 
-/** Activa o apaga voz y sonidos según los ajustes. */
+/**
+ * Activa o apaga voz y sonidos según los ajustes.
+ * @param {{ voice: boolean, sound: boolean }} settings
+ */
 export function configureAudio({ voice, sound }) {
   voiceEnabled = voice;
   soundEnabled = sound;
@@ -27,25 +32,42 @@ export function configureAudio({ voice, sound }) {
 export function unlockAudio() {
   try {
     if (!audioContext) audioContext = new AudioContext();
-    if (audioContext.state === 'suspended') audioContext.resume();
+    // resume() devuelve una promesa; si el navegador la rechaza, el juego sigue sin tonos.
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
   } catch {
     audioContext = null;
   }
   pickVoice();
 }
 
+/**
+ * Elige la voz en español. Orden de preferencia:
+ *   1. Voces del propio dispositivo (`localService`), por el orden de VOICE_LANGS.
+ *   2. Cualquier voz local en español.
+ *   3. Solo si no hay ninguna local: las mismas búsquedas entre las de red.
+ * Las voces de red (por ejemplo las "Google" de Chrome) mandan el texto de cada
+ * frase a un servidor externo; por eso una local siempre gana, aunque sea de un
+ * español menos preferido. Es una función pura para poder probarla.
+ * @param {readonly SpeechSynthesisVoice[]} voices
+ * @returns {SpeechSynthesisVoice | null}
+ */
+export function chooseVoice(voices) {
+  /** @param {SpeechSynthesisVoice} voice */
+  const normalizedLang = (voice) => voice.lang.replace('_', '-').toLowerCase();
+  const find = (/** @type {SpeechSynthesisVoice[]} */ pool) => {
+    for (const lang of VOICE_LANGS) {
+      const exact = pool.find((voice) => normalizedLang(voice) === lang.toLowerCase());
+      if (exact) return exact;
+    }
+    return pool.find((voice) => normalizedLang(voice).startsWith('es')) ?? null;
+  };
+  return find(voices.filter((voice) => voice.localService)) ?? find([...voices]);
+}
+
 function pickVoice() {
   const synth = globalThis.speechSynthesis;
   if (!synth) return;
-  const voices = synth.getVoices();
-  for (const lang of VOICE_LANGS) {
-    const exact = voices.find((v) => v.lang.replace('_', '-').toLowerCase() === lang.toLowerCase());
-    if (exact) {
-      chosenVoice = exact;
-      return;
-    }
-  }
-  chosenVoice = voices.find((v) => v.lang.toLowerCase().startsWith('es')) ?? null;
+  chosenVoice = chooseVoice(synth.getVoices());
 }
 
 // Las voces llegan tarde en Chrome: volvemos a elegir cuando aparecen.
@@ -70,9 +92,12 @@ export function say(text) {
   if (!voiceEnabled || !synth || !text) return Promise.resolve();
   return new Promise((resolve) => {
     let done = false;
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timer;
     const finish = () => {
       if (!done) {
         done = true;
+        clearTimeout(timer);
         resolve();
       }
     };
@@ -86,7 +111,8 @@ export function say(text) {
       utterance.onend = finish;
       utterance.onerror = finish;
       synth.speak(utterance);
-      setTimeout(finish, MAX_SPEECH_MS);
+      // Tope de seguridad por si el navegador nunca avisa que terminó de hablar.
+      if (!done) timer = setTimeout(finish, MAX_SPEECH_MS);
     } catch {
       finish();
     }
@@ -94,6 +120,12 @@ export function say(text) {
 }
 
 /** Un tono seno corto. */
+/**
+ * @param {number} frequency  Hz
+ * @param {number} durationSec
+ * @param {number} [volume]
+ * @param {number} [delaySec]
+ */
 function tone(frequency, durationSec, volume = 0.12, delaySec = 0) {
   if (!soundEnabled || !audioContext) return;
   const start = audioContext.currentTime + delaySec;
@@ -110,7 +142,10 @@ function tone(frequency, durationSec, volume = 0.12, delaySec = 0) {
   oscillator.stop(start + durationSec + 0.02);
 }
 
-/** Tono que sube con el número: 1 grave, 2 un poco más agudo... */
+/**
+ * Tono que sube con el número: 1 grave, 2 un poco más agudo...
+ * @param {number} n
+ */
 export function playCountTone(n) {
   tone(330 + n * 20, 0.08);
 }
