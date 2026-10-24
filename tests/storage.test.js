@@ -54,6 +54,7 @@ test('un objeto con __proto__ o constructor no contamina ni se cuela', () => {
 test('guardar y cargar devuelve lo mismo (clave versionada v1)', () => {
   const storage = createMemoryStorage();
   restore = useStorage(storage);
+  /** @type {import('../js/storage.js').Settings} */
   const settings = { ...DEFAULT_SETTINGS, mode: 'missing', rounds: 3 };
   saveSettings(settings);
   assert.match(STORAGE_KEY, /:v1$/);

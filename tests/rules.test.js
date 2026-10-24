@@ -19,10 +19,16 @@ import {
 } from '../js/rules.js';
 import { seededRandom } from './helpers.js';
 
+/** @typedef {import('../js/config.js').ModeId} ModeId */
+/** @typedef {import('../js/config.js').LevelId} LevelId */
+
 const ROUNDS_PER_COMBINATION = 300;
 
 /** Todas las combinaciones de modo y nivel. */
-const COMBINATIONS = MODES.flatMap((mode) => LEVELS.map((level) => ({ mode: mode.id, level: level.id })));
+/** @type {Array<{ mode: ModeId, level: LevelId }>} */
+const COMBINATIONS = MODES.flatMap((mode) =>
+  LEVELS.map((level) => ({ mode: /** @type {ModeId} */ (mode.id), level: /** @type {LevelId} */ (level.id) })),
+);
 
 test('shuffle devuelve una copia con los mismos elementos y no toca el original', () => {
   const original = [1, 2, 3, 4, 5, 6];

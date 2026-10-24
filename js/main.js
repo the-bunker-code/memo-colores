@@ -11,37 +11,32 @@ import { hydrateIcons } from './icons.js';
 import { render } from './render.js';
 import { openSettingsPanel, setupSettingsPanel } from './settings-panel.js';
 
-/** Cada acción recibe el elemento tocado y lee sus data-*. */
+/**
+ * Cada acción recibe el elemento tocado y lee sus data-*. Esos valores los
+ * escribe render.js a partir de config.js, por eso se tratan como ids válidos.
+ * @type {Record<string, (el: HTMLElement) => void>}
+ */
 const ACTIONS = {
-  'start-mode': (el) => startGame(el.dataset.mode),
-  'choose-level': (el) => chooseLevel(el.dataset.level),
-  'choose-answer': (el) => chooseAnswer(el.dataset.value),
+  'start-mode': (el) => startGame(/** @type {import('./config.js').ModeId} */ (el.dataset.mode)),
+  'choose-level': (el) => chooseLevel(/** @type {import('./config.js').LevelId} */ (el.dataset.level)),
+  'choose-answer': (el) => chooseAnswer(el.dataset.value ?? ''),
   'repeat-question': () => repeatQuestion(),
   'open-settings': () => openSettingsPanel(),
   'go-home': () => goHome(),
   'play-again': () => startGame(state.settings.mode),
 };
 
+/** @param {MouseEvent} event */
 function handleAction(event) {
+  if (!(event.target instanceof Element)) return;
   const el = event.target.closest('[data-action]');
-  if (!el) return;
-  const handler = ACTIONS[el.dataset.action];
+  if (!(el instanceof HTMLElement)) return;
+  const handler = ACTIONS[el.dataset.action ?? ''];
   if (handler) handler(el);
 }
 
+// Todos los controles son <button>, que ya responden a Enter y Espacio con un "click".
 document.addEventListener('click', handleAction);
-
-// Los elementos con role="button" que no son <button> también responden a
-// Enter y Espacio, como un botón de verdad.
-document.addEventListener('keydown', (event) => {
-  const el = event.target;
-  if (!(el instanceof HTMLElement) || el.tagName === 'BUTTON') return;
-  if (el.getAttribute('role') !== 'button') return;
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    handleAction(event);
-  }
-});
 
 function boot() {
   document.getElementById('boot-warning')?.remove();

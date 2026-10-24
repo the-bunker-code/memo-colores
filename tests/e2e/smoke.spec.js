@@ -6,6 +6,7 @@
 import { test, expect } from './fixtures.js';
 
 test('el inicio se dibuja con la CSP estricta y sin terceros', async ({ page }) => {
+  /** @type {string[]} */
   const external = [];
   page.on('request', (request) => {
     if (!request.url().startsWith('http://localhost')) external.push(request.url());

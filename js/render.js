@@ -15,9 +15,21 @@ import { updateZone } from './dom.js';
 import { icon } from './icons.js';
 import { mascotSVG } from './mascot.js';
 
-const $ = (id) => document.getElementById(id);
+/** @typedef {import('./game.js').GameState} GameState */
+/** @typedef {import('./rules.js').Round} Round */
 
-/** Punto de entrada: redibuja todo lo visible. @param {import('./game.js').GameState} state */
+/**
+ * Busca un elemento fijo de index.html. Si falta, es un error de programación.
+ * @param {string} id
+ * @returns {HTMLElement}
+ */
+const $ = (id) => {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Falta #${id} en index.html`);
+  return element;
+};
+
+/** Punto de entrada: redibuja todo lo visible. @param {GameState} state */
 export function render(state) {
   applyTheme(state);
   showScreen(state.screen);
@@ -28,6 +40,7 @@ export function render(state) {
 
 /* ---------- Tema y pantallas ---------- */
 
+/** @param {GameState} state */
 function applyTheme(state) {
   const themeName = state.screen === 'home' ? 'home' : modeById(state.settings.mode).theme;
   const theme = THEMES[themeName];
@@ -40,6 +53,7 @@ function applyTheme(state) {
   root.setProperty('--hills', theme.hills);
 }
 
+/** @param {GameState['screen']} screen */
 function showScreen(screen) {
   for (const name of ['home', 'game', 'end']) {
     $(`screen-${name}`).hidden = name !== screen;
@@ -62,6 +76,10 @@ function tapitaHTML(colorId, { size = 'normal', lit = false, highlighted = false
   return `<span class="${classes.join(' ')}" data-vars="--base:${color.base};--shine:${color.shine}">${badge}</span>`;
 }
 
+/**
+ * @param {string} id
+ * @param {string} mood
+ */
 function mascotInto(id, mood) {
   const el = $(id);
   if (el.dataset.mood !== mood) {
@@ -72,6 +90,7 @@ function mascotInto(id, mood) {
 
 /* ---------- Inicio ---------- */
 
+/** @param {GameState} state */
 function renderHome(state) {
   mascotInto('home-mascot', 'happy');
 
@@ -107,6 +126,7 @@ function renderHome(state) {
 
 /* ---------- Juego ---------- */
 
+/** @param {GameState} state */
 function renderGame(state) {
   const { round } = state;
   if (!round) return;
@@ -132,14 +152,15 @@ function renderGame(state) {
     <span class="question__text">${round.question}</span>`,
   );
 
-  updateZone($('prompt-card'), PROMPT[round.mode](state));
-  updateZone($('table'), TABLE[round.mode](state));
+  updateZone($('prompt-card'), PROMPT[round.mode](state, round));
+  updateZone($('table'), TABLE[round.mode](state, round));
   $('table').className = `table table--${round.mode}`;
-  renderTray(state);
+  renderTray(state, round);
 
   updateZone($('adult-tips'), [...mode.tips, ...GENERAL_TIPS].map((tip) => `<li>${tip}</li>`).join(''));
 }
 
+/** @param {GameState} state */
 function renderProgress(state) {
   const done = state.roundNumber - 1 + (state.phase === 'solved' ? 1 : 0);
   const percent = Math.round((done / state.totalRounds) * 100);
@@ -155,35 +176,40 @@ function renderProgress(state) {
 }
 
 /** Caja de resultado: "?" hasta acertar, luego la respuesta. */
+/**
+ * @param {string} content
+ * @param {boolean} filled
+ */
 function resultBox(content, filled) {
   return `<span class="result-box ${filled ? 'is-filled' : ''}">${filled ? content : '?'}</span>`;
 }
 
+/** @type {Record<import('./config.js').ModeId, (state: GameState, round: Round) => string>} */
 const PROMPT = {
-  sequence(state) {
-    const boxes = state.round.steps.map((color, i) => {
+  sequence(state, round) {
+    const boxes = round.steps.map((color, i) => {
       const filled = i < state.filledSteps.length;
-      return resultBox(tapitaHTML(color, { size: 'mini' }), filled);
+      return resultBox(tapitaHTML(String(color), { size: 'mini' }), filled);
     });
     return `<div class="prompt-card__line prompt-card__line--slots"
       data-vars="--slots:${boxes.length}">${boxes.join('')}</div>`;
   },
 
-  missing(state) {
+  missing(state, round) {
     const solved = state.phase === 'solved';
     return `<div class="prompt-card__line">
       <span class="prompt-card__icon">${icon('eye-off', { size: 34, strokeWidth: 3 })}</span>
       <span class="prompt-card__arrow">${icon('arrow-right', { size: 34, strokeWidth: 3.5 })}</span>
-      ${resultBox(tapitaHTML(state.round.steps[0], { size: 'mini' }), solved)}
+      ${resultBox(tapitaHTML(String(round.steps[0]), { size: 'mini' }), solved)}
     </div>`;
   },
 
-  cups(state) {
+  cups(state, round) {
     const solved = state.phase === 'solved';
-    const answer = Number(state.round.steps[0]);
+    const answer = Number(round.steps[0]);
     const number = `<span class="result-box__number" data-vars="--answer-color:${ANSWER_COLORS[answer - 1]}">${answer}</span>`;
     return `<div class="prompt-card__line">
-      ${tapitaHTML(state.round.targetColor, { size: 'small' })}
+      ${tapitaHTML(round.targetColor ?? '', { size: 'small' })}
       <span class="prompt-card__arrow">${icon('arrow-right', { size: 34, strokeWidth: 3.5 })}</span>
       <span class="prompt-card__icon">${icon('cup-soda', { size: 34, strokeWidth: 3 })}</span>
       ${resultBox(number, solved)}
@@ -191,11 +217,12 @@ const PROMPT = {
   },
 };
 
+/** @type {Record<import('./config.js').ModeId, (state: GameState, round: Round) => string>} */
 const TABLE = {
-  sequence(state) {
-    const { round, table } = state;
+  sequence(state, round) {
+    const { table } = state;
     const showingOrHelping = state.phase === 'showing' || state.phase === 'helping';
-    const items = round.tableColors.map((color, i) => {
+    const items = (round.tableColors ?? []).map((color, i) => {
       const lit = table.litIndex === i;
       return tapitaHTML(color, { lit, highlighted: lit && showingOrHelping, number: lit ? table.litNumber : null });
     });
@@ -203,22 +230,23 @@ const TABLE = {
       <p class="sr-only">${state.phase === 'answering' ? round.question : 'Mira las tapitas.'}</p>`;
   },
 
-  missing(state) {
-    const { round, table } = state;
-    const items = round.shownColors.map((color, i) => {
+  missing(state, round) {
+    const { table } = state;
+    const shownColors = round.shownColors ?? [];
+    const items = shownColors.map((color, i) => {
       if (i !== round.missingIndex || table.missingSlot === 'all') return tapitaHTML(color);
       if (table.missingSlot === 'help') return tapitaHTML(color, { highlighted: true });
       if (table.missingSlot === 'found') return tapitaHTML(color, { lit: true });
       return '<span class="hole" aria-label="Aquí había una tapita"></span>';
     });
     const cloth = table.covered ? '<span class="cloth" aria-label="Una tela tapa las tapitas"></span>' : '';
-    const size = round.shownColors.length > 4 ? 'table__row--tight' : '';
+    const size = shownColors.length > 4 ? 'table__row--tight' : '';
     return `<div class="table__row ${size}">${items.join('')}</div>${cloth}`;
   },
 
-  cups(state) {
-    const { round, table } = state;
-    const cups = round.cupColors.map((color, i) => {
+  cups(state, round) {
+    const { table } = state;
+    const cups = (round.cupColors ?? []).map((color, i) => {
       const highlighted = table.highlightCup === i;
       const tapita =
         table.cupsLifted && color
@@ -234,6 +262,7 @@ const TABLE = {
 };
 
 /** Un vaso de papel con su número del color de su botón. */
+/** @param {number} index */
 function cupSVG(index) {
   const color = ANSWER_COLORS[index];
   return `<svg class="cup" viewBox="0 0 100 116" aria-hidden="true">
@@ -247,8 +276,11 @@ function cupSVG(index) {
 
 /* ---------- Bandeja de respuestas ---------- */
 
-function renderTray(state) {
-  const { round } = state;
+/**
+ * @param {GameState} state
+ * @param {Round} round
+ */
+function renderTray(state, round) {
   const waiting = state.phase === 'showing' || state.phase === 'helping';
   const lastValue = round.steps[round.steps.length - 1];
   const tray = $('tray');
@@ -270,15 +302,24 @@ function renderTray(state) {
   updateZone(tray, html);
 }
 
+/**
+ * @param {Round} round
+ * @param {string|number} value
+ */
 function answerLabel(round, value) {
   return round.mode === 'cups' ? `Vaso ${value}` : colorById(String(value)).word;
 }
 
+/** @param {string} colorId */
 function colorAnswerHTML(colorId) {
   return `${tapitaHTML(colorId, { size: 'chip' })}
     <span class="answer__word">${colorById(colorId).word}</span>`;
 }
 
+/**
+ * @param {number} n
+ * @param {number} position
+ */
 function numberAnswerHTML(n, position) {
   const color = ANSWER_COLORS[position];
   const dots = Array.from({ length: n }, () => '<i></i>').join('');
@@ -288,6 +329,7 @@ function numberAnswerHTML(n, position) {
 
 /* ---------- Final ---------- */
 
+/** @param {GameState} state */
 function renderEnd(state) {
   mascotInto('end-mascot', 'happy');
   updateZone(

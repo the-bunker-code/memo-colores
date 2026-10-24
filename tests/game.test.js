@@ -50,7 +50,10 @@ async function flush() {
   for (let i = 0; i < 20; i++) await Promise.resolve();
 }
 
-/** Avanza el reloj simulado de a 50 ms, dejando correr las promesas en cada paso. */
+/**
+ * Avanza el reloj simulado de a 50 ms, dejando correr las promesas en cada paso.
+ * @param {number} ms
+ */
 async function advance(ms) {
   for (let elapsed = 0; elapsed < ms; elapsed += 50) {
     mock.timers.tick(50);
@@ -71,10 +74,15 @@ function freshGame(overrides = {}) {
   game.updateSettings({ ...state.settings, rounds: 3, level: 'easy', ...overrides });
 }
 
-/** Un valor que no es la respuesta esperada. */
+/**
+ * Un valor que no es la respuesta esperada.
+ * @returns {string|number}
+ */
 function wrongAnswer() {
   const round = /** @type {NonNullable<typeof state.round>} */ (state.round);
-  return round.options.find((option) => String(option) !== String(round.steps[state.stepIndex]));
+  const wrong = round.options.find((option) => String(option) !== String(round.steps[state.stepIndex]));
+  if (wrong === undefined) throw new Error('la ronda no tiene una respuesta incorrecta');
+  return wrong;
 }
 
 beforeEach(() => mock.timers.enable({ apis: ['setTimeout'] }));

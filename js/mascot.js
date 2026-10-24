@@ -18,6 +18,7 @@ function scallopedEdge(points = 22, outer = 48, inner = 44) {
 const EDGE = scallopedEdge();
 const INK = '#3b1d12';
 const MOUTH = '#7a2a1a';
+/** @type {Record<string, string>} */
 const FACES = {
   idle: `<circle cx="37" cy="46" r="6.5" fill="${INK}"/><circle cx="63" cy="46" r="6.5" fill="${INK}"/>
     <circle cx="39" cy="44" r="2.4" fill="#fff"/><circle cx="65" cy="44" r="2.4" fill="#fff"/>
@@ -29,6 +30,7 @@ const FACES = {
     <path d="M29 34 l12 -3 M59 31 l12 3" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>
     <ellipse cx="50" cy="63" rx="4.5" ry="4" fill="${MOUTH}"/>`,
 };
+/** @param {string} [mood] idle, happy o think */
 export function mascotSVG(mood = 'idle') {
   return `<svg viewBox="0 0 100 100" aria-hidden="true">
     <polygon points="${EDGE}" fill="#d93b30"/>

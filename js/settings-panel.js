@@ -10,7 +10,10 @@ import { LEVELS, MODES, ROUND_OPTIONS } from './config.js';
 import { goHome, pauseForSettings, startGame, state, updateSettings } from './game.js';
 import { normalizeSettings } from './storage.js';
 
-/** Secciones del panel: cada una es un grupo de "pastillas". */
+/**
+ * Secciones del panel: cada una es un grupo de "pastillas".
+ * @type {Array<{ key: keyof import('./storage.js').Settings, legend: string, options: Array<{ value: string | number | boolean, label: string }> }>}
+ */
 const SECTIONS = [
   { key: 'mode', legend: 'Modo', options: MODES.map((m) => ({ value: m.id, label: m.name })) },
   { key: 'level', legend: 'Nivel', options: LEVELS.map((l) => ({ value: l.id, label: l.name })) },
@@ -41,13 +44,29 @@ const SECTIONS = [
   },
 ];
 
+/** Copia de los ajustes que el adulto está editando (null con el panel cerrado). */
+/** @type {import('./storage.js').Settings | null} */
 let draft = null;
-let dialog = null;
+/** @type {HTMLDialogElement} */
+let dialog;
+
+/**
+ * Busca un elemento fijo de index.html. Si falta, es un error de programación.
+ * @template {HTMLElement} T
+ * @param {string} id
+ * @param {new () => T} type
+ * @returns {T}
+ */
+function getElement(id, type) {
+  const element = document.getElementById(id);
+  if (!(element instanceof type)) throw new Error(`Falta #${id} en index.html`);
+  return element;
+}
 
 /** Prepara el panel una sola vez, al arrancar. */
 export function setupSettingsPanel() {
-  dialog = document.getElementById('settings');
-  const form = document.getElementById('settings-form');
+  dialog = getElement('settings', HTMLDialogElement);
+  const form = getElement('settings-form', HTMLFormElement);
 
   form.addEventListener('change', (event) => {
     const input = event.target;
@@ -66,8 +85,8 @@ export function setupSettingsPanel() {
   });
 
   form.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-settings]');
-    if (!button) return;
+    const button = event.target instanceof Element ? event.target.closest('[data-settings]') : null;
+    if (!(button instanceof HTMLElement)) return;
     if (button.dataset.settings === 'home') {
       closeWithoutSideEffects();
       goHome();
@@ -86,7 +105,7 @@ export function setupSettingsPanel() {
 export function openSettingsPanel() {
   pauseForSettings();
   draft = { ...state.settings };
-  document.getElementById('settings-fields').innerHTML = SECTIONS.map(sectionHTML).join('');
+  getElement('settings-fields', HTMLElement).innerHTML = SECTIONS.map(sectionHTML).join('');
   dialog.showModal();
 }
 
@@ -101,10 +120,14 @@ function closeWithoutSaving() {
   if (state.screen !== 'home') goHome();
 }
 
+/**
+ * @param {(typeof SECTIONS)[number]} section
+ * @returns {string}
+ */
 function sectionHTML(section) {
   const pills = section.options
     .map((option) => {
-      const checked = String(draft[section.key]) === String(option.value);
+      const checked = String(draft?.[section.key]) === String(option.value);
       const id = `setting-${section.key}-${option.value}`;
       return `<input class="pill__input" type="radio" name="${section.key}" id="${id}"
         value="${option.value}" ${checked ? 'checked' : ''}>

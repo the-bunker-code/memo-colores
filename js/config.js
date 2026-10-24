@@ -47,7 +47,12 @@ export function colorById(id) {
 /** Colores fijos de las 3 posiciones de la bandeja (respuestas numéricas). */
 export const ANSWER_COLORS = ['#a77bff', '#4f8ef7', '#ff5d8f'];
 
-/** Temas de color. Cada modo tiene el suyo y nunca cambia. */
+/** @typedef {{ main: string, dark: string, light: string, skyTop: string, skyBottom: string, hills: string }} Theme */
+
+/**
+ * Temas de color. Cada modo tiene el suyo y nunca cambia.
+ * @type {Record<string, Theme>}
+ */
 export const THEMES = {
   home: {
     main: '#ffa23a',

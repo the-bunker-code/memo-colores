@@ -6,6 +6,7 @@
  * repositorio lucide-icons/lucide y pégalo en ICON_PATHS.
  */
 
+/** @type {Record<string, string>} */
 const ICON_PATHS = {
   'settings':
     '<path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/> <circle cx="12" cy="12" r="3"/>',
@@ -36,8 +37,8 @@ const ICON_PATHS = {
 /**
  * Devuelve el SVG de un ícono como texto.
  * Sin `label` es decorativo (aria-hidden); con `label` tiene significado propio.
- * @param {string} name
  * `fill` sirve para las estrellas rellenas del final ('currentColor').
+ * @param {string} name
  * @param {{ size?: number, strokeWidth?: number, label?: string, className?: string, fill?: string }} [options]
  */
 export function icon(name, { size = 24, strokeWidth = 2.5, label = '', className = '', fill = 'none' } = {}) {
@@ -54,9 +55,9 @@ export function icon(name, { size = 24, strokeWidth = 2.5, label = '', className
  * @param {ParentNode} root
  */
 export function hydrateIcons(root = document) {
-  root.querySelectorAll('[data-icon]').forEach((el) => {
+  /** @type {NodeListOf<HTMLElement>} */ (root.querySelectorAll('[data-icon]')).forEach((el) => {
     const size = Number(el.dataset.size) || 24;
     const strokeWidth = Number(el.dataset.stroke) || 2.5;
-    el.outerHTML = icon(el.dataset.icon, { size, strokeWidth });
+    el.outerHTML = icon(el.dataset.icon ?? '', { size, strokeWidth });
   });
 }
