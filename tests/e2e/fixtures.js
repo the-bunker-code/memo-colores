@@ -91,12 +91,13 @@ export async function gameState(page) {
  * Adelanta el reloj simulado hasta que se cumpla la condición.
  * @param {import('@playwright/test').Page} page
  * @param {(state: Awaited<ReturnType<typeof gameState>>) => boolean} done
- * @param {number} [maxMs]
+ * @param {number} [maxMs]  Tope de tiempo simulado.
+ * @param {number} [stepMs]  De cuánto en cuánto avanza el reloj entre revisiones.
  */
-export async function runUntil(page, done, maxMs = 60_000) {
-  for (let elapsed = 0; elapsed < maxMs; elapsed += 100) {
+export async function runUntil(page, done, maxMs = 60_000, stepMs = 100) {
+  for (let elapsed = 0; elapsed < maxMs; elapsed += stepMs) {
     if (done(await gameState(page))) return;
-    await page.clock.runFor(100);
+    await page.clock.runFor(stepMs);
   }
   throw new Error(`La condición no se cumplió en ${maxMs} ms simulados: ${JSON.stringify(await gameState(page))}`);
 }
