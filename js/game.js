@@ -21,6 +21,8 @@ import {
 } from './audio.js';
 import { loadSettings, normalizeSettings, saveSettings } from './storage.js';
 
+/** @typedef {import('./rules.js').Round} Round */
+
 /**
  * Lo que se ve en la mesa. Se reinicia en cada ronda.
  * @typedef {Object} TableView
@@ -84,7 +86,10 @@ configureAudio(state.settings);
 
 const listeners = new Set();
 
-/** Registra una función que se llama cada vez que cambia el estado. */
+/**
+ * Registra una función que se llama cada vez que cambia el estado.
+ * @param {(state: GameState) => void} listener
+ */
 export function onChange(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -103,22 +108,31 @@ function notify() {
  * tarea termina sin tocar nada. Así no quedan voces ni animaciones sueltas.
  */
 let roundId = 0;
+/** @param {number} id */
 const isStale = (id) => id !== roundId;
+/** @param {number} ms */
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let nonce = 0;
 
+/** @param {number} ms */
 function lookMs(ms) {
   return ms * (LOOK_TIME[state.settings.lookTime] ?? 1);
 }
 
 /* ---------- Acciones públicas ---------- */
 
-/** Cambia el nivel desde la pantalla de inicio y lo guarda. */
+/**
+ * Cambia el nivel desde la pantalla de inicio y lo guarda.
+ * @param {import('./config.js').LevelId} level
+ */
 export function chooseLevel(level) {
   updateSettings({ ...state.settings, level });
 }
 
-/** Empieza una sesión con el modo elegido. */
+/**
+ * Empieza una sesión con el modo elegido.
+ * @param {import('./config.js').ModeId} [mode]
+ */
 export function startGame(mode = state.settings.mode) {
   unlockAudio();
   updateSettings({ ...state.settings, mode });
@@ -140,9 +154,14 @@ export function goHome() {
   notify();
 }
 
-/** Repite la pregunta en voz alta (globo con altavoz). */
+/**
+ * Repite la pregunta en voz alta (globo con altavoz).
+ * Solo cuando le toca responder: say() corta la frase que esté sonando, y
+ * mientras se muestra la ronda o corre la ayuda esa frase es la información
+ * que ella necesita (por ejemplo, el nombre del color que se enciende).
+ */
 export function repeatQuestion() {
-  if (state.round) say(state.round.question);
+  if (state.round && state.phase === 'answering') say(state.round.question);
 }
 
 /** El adulto abrió los ajustes: se detiene todo lo que estaba en curso. */
@@ -151,7 +170,10 @@ export function pauseForSettings() {
   stopSpeaking();
 }
 
-/** Guarda ajustes nuevos (ya validados por normalizeSettings). */
+/**
+ * Guarda ajustes nuevos (ya validados por normalizeSettings).
+ * @param {import('./storage.js').Settings} next
+ */
 export function updateSettings(next) {
   state.settings = normalizeSettings(next);
   configureAudio(state.settings);
@@ -167,9 +189,9 @@ export function chooseAnswer(value) {
   if (state.phase !== 'answering' || !state.round) return;
   const expected = state.round.steps[state.stepIndex];
   if (String(value) === String(expected)) {
-    handleCorrect(expected);
+    handleCorrect(state.round, expected);
   } else {
-    handleMistake(value);
+    handleMistake(state.round, value);
   }
 }
 
@@ -210,7 +232,10 @@ async function playRound() {
   say(round.question);
 }
 
-/** Cómo se muestra cada modo antes de que la niña responda. */
+/**
+ * Cómo se muestra cada modo antes de que la niña responda.
+ * @type {Record<import('./config.js').ModeId, (round: Round, id: number) => Promise<void>>}
+ */
 const SHOW = {
   async sequence(round, id) {
     await say(introPhrase(round));
@@ -250,15 +275,29 @@ const SHOW = {
   },
 };
 
-/** Enciende las tapitas de la secuencia una por una, con tono y voz. */
+/**
+ * Posición en la mesa de la tapita de ese color (modo Colores).
+ * @param {Round} round
+ * @param {string|number} colorId
+ */
+function tableIndexOf(round, colorId) {
+  return (round.tableColors ?? []).indexOf(String(colorId));
+}
+
+/**
+ * Enciende las tapitas de la secuencia una por una, con tono y voz.
+ * @param {Round} round
+ * @param {number} id
+ * @param {number} stepMs
+ */
 async function playSequence(round, id, stepMs) {
   for (let i = 0; i < round.steps.length; i++) {
     const color = round.steps[i];
-    state.table.litIndex = round.tableColors.indexOf(color);
+    state.table.litIndex = tableIndexOf(round, color);
     state.table.litNumber = i + 1;
     playCountTone(i + 1);
     notify();
-    await Promise.all([say(colorPhrase(color)), wait(lookMs(stepMs))]);
+    await Promise.all([say(colorPhrase(String(color))), wait(lookMs(stepMs))]);
     if (isStale(id)) return;
     state.table.litIndex = null;
     notify();
@@ -271,15 +310,18 @@ async function playSequence(round, id, stepMs) {
 
 let tapCounter = 0;
 
-function handleCorrect(expected) {
-  const round = state.round;
+/**
+ * @param {Round} round
+ * @param {string|number} expected
+ */
+function handleCorrect(round, expected) {
   state.pulseValue = null;
   state.filledSteps = [...state.filledSteps, expected];
   state.stepIndex++;
 
   if (round.mode === 'sequence') {
     // Cada toque enciende su tapita en la mesa, con su número encima.
-    state.table.litIndex = round.tableColors.indexOf(String(expected));
+    state.table.litIndex = tableIndexOf(round, expected);
     state.table.litNumber = state.stepIndex;
     playCountTone(state.stepIndex);
     say(optionWord(round, expected));
@@ -296,12 +338,12 @@ function handleCorrect(expected) {
     }, 700);
     return;
   }
-  solveRound();
+  solveRound(round);
 }
 
-async function solveRound() {
+/** @param {Round} round */
+async function solveRound(round) {
   const id = roundId;
-  const round = state.round;
   state.phase = 'solved';
   state.mood = 'happy';
   state.hopping = true;
@@ -332,7 +374,11 @@ async function solveRound() {
 
 /* ---------- Error: nunca castiga ---------- */
 
-function handleMistake(value) {
+/**
+ * @param {Round} round
+ * @param {string|number} value
+ */
+function handleMistake(round, value) {
   playSoftErrorTone();
   state.shake = { value, nonce: ++nonce };
   const shakeNonce = state.shake.nonce;
@@ -345,10 +391,10 @@ function handleMistake(value) {
 
   if (!state.helpUsed) {
     state.helpUsed = true;
-    runHelp();
+    runHelp(round);
   } else {
     // A partir del segundo error ya no hay narración: solo marca la correcta.
-    state.pulseValue = state.round.steps[state.stepIndex];
+    state.pulseValue = round.steps[state.stepIndex];
     notify();
   }
 }
@@ -358,9 +404,9 @@ function handleMistake(value) {
  * objeto resaltado y al final la respuesta correcta queda latiendo.
  * Mientras dura, los botones no responden (phase = 'helping').
  */
-async function runHelp() {
+/** @param {Round} round */
+async function runHelp(round) {
   const id = roundId;
-  const round = state.round;
   state.phase = 'helping';
   state.mood = 'think';
   notify();
@@ -376,6 +422,7 @@ async function runHelp() {
   notify();
 }
 
+/** @type {Record<import('./config.js').ModeId, (round: Round, id: number) => Promise<void>>} */
 const HELP = {
   async sequence(round, id) {
     await say(TEXT.look);
@@ -384,7 +431,7 @@ const HELP = {
     await playSequence(round, id, LEVEL_RULES.sequence[round.level].stepMs * 1.4);
     if (isStale(id)) return;
     const next = round.steps[state.stepIndex];
-    state.table.litIndex = round.tableColors.indexOf(next);
+    state.table.litIndex = tableIndexOf(round, next);
     state.table.litNumber = state.stepIndex + 1;
     notify();
     await Promise.all([say(helpPhrase(round, state.stepIndex)), wait(TIMING.helpStep * 2)]);
