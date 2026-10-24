@@ -1,0 +1,105 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="theme-color" content="#ffe7b8">
+  <title>Memo Colores</title>
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- main.js borra este aviso al arrancar. Si sigue visible, los módulos no cargaron. -->
+  <p class="boot-warning" id="boot-warning">Cargando… si ves esto, abre con un servidor local.</p>
+
+  <svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
+    <path class="hills__back" d="M0 55 C70 15 150 25 215 50 S335 85 400 45 V120 H0Z" />
+    <path d="M0 85 C70 58 150 68 210 88 S330 110 400 78 V120 H0Z" />
+  </svg>
+
+  <main class="app">
+    <!-- 1. Inicio -->
+    <section class="screen screen--home" id="screen-home" hidden>
+      <header class="home-header">
+        <h1 class="logo">Memo <span class="logo__accent">Colores</span></h1>
+        <button class="gear" type="button" data-action="open-settings" aria-label="Ajustes para adultos">
+          <span data-icon="settings" data-size="26"></span>
+        </button>
+      </header>
+
+      <div class="greeting">
+        <div class="greeting__mascot mascot is-floating" id="home-mascot"></div>
+        <p class="bubble greeting__bubble">¡Hola! ¿Jugamos?</p>
+      </div>
+
+      <div class="level-picker" id="level-picker" role="radiogroup" aria-label="Nivel"></div>
+
+      <div class="mode-grid" id="mode-grid"></div>
+    </section>
+
+    <!-- 2. Juego -->
+    <section class="screen screen--game" id="screen-game" hidden>
+      <header class="topbar">
+        <div class="avatar" id="avatar"></div>
+        <div class="progress" id="progress" role="progressbar" aria-label="Rondas" aria-valuemin="0"></div>
+        <button class="gear" type="button" data-action="open-settings" aria-label="Ajustes para adultos">
+          <span data-icon="settings" data-size="26"></span>
+        </button>
+      </header>
+
+      <div class="mode-chip" id="mode-chip"></div>
+
+      <button class="question" id="question" type="button" data-action="repeat-question" aria-label="Repetir la pregunta"></button>
+
+      <div class="game-layout">
+        <div class="game-layout__main">
+          <div class="prompt-card" id="prompt-card"></div>
+          <div class="table" id="table" aria-live="polite"></div>
+        </div>
+        <div class="game-layout__side">
+          <div class="tray" id="tray"></div>
+          <details class="adult">
+            <summary class="adult__summary">
+              <span data-icon="info" data-size="22"></span>
+              <span>Para el adulto</span>
+              <span class="adult__chevron" data-icon="chevron-down" data-size="22"></span>
+            </summary>
+            <ul class="adult__list" id="adult-tips"></ul>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Final -->
+    <section class="screen screen--end" id="screen-end" hidden>
+      <div class="end">
+        <div class="end__mascot mascot is-floating" id="end-mascot"></div>
+        <div class="end__stars" id="end-stars"></div>
+        <h2 class="end__title">Terminamos</h2>
+        <p class="end__line"><span data-icon="package" data-size="26"></span> Ahora guardamos juntos</p>
+        <div class="end__buttons" id="end-buttons">
+          <button class="chunky end__button" type="button" data-action="go-home">
+            <span data-icon="house" data-size="26"></span> Inicio
+          </button>
+          <button class="chunky chunky--blue end__button" type="button" data-action="play-again">
+            <span data-icon="rotate-ccw" data-size="26"></span> Otra vez
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Panel del adulto. settings-panel.js lo llena y lo maneja. -->
+  <dialog class="settings" id="settings" aria-labelledby="settings-title">
+    <form class="settings__form" method="dialog" id="settings-form">
+      <h2 class="settings__title" id="settings-title">Ajustes para adultos</h2>
+      <div id="settings-fields"></div>
+      <div class="settings__actions">
+        <button class="settings__button" type="button" data-settings="home">Inicio</button>
+        <button class="settings__button" type="button" data-settings="cancel">Cancelar</button>
+        <button class="settings__button settings__button--primary" type="submit" data-settings="save">Guardar y empezar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+
+</body></html>
