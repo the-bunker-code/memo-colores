@@ -21,7 +21,7 @@ test('el inicio se dibuja con la CSP estricta y sin terceros', async ({ page }) 
     .locator('.mode-card')
     .first()
     .evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(background).toBe('rgb(79, 142, 247)');
+  expect(background).toBe('rgb(47, 111, 216)');
   expect(external).toEqual([]);
 });
 

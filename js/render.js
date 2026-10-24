@@ -14,6 +14,7 @@ import { ANSWER_COLORS, GENERAL_TIPS, LEVELS, MODES, THEMES, colorById, levelByI
 import { updateZone } from './dom.js';
 import { icon } from './icons.js';
 import { mascotSVG } from './mascot.js';
+import { introPhrase, resultPhrase } from './rules.js';
 
 /** @typedef {import('./game.js').GameState} GameState */
 /** @typedef {import('./rules.js').Round} Round */
@@ -47,6 +48,8 @@ function applyTheme(state) {
   const root = document.documentElement.style;
   root.setProperty('--theme-main', theme.main);
   root.setProperty('--theme-dark', theme.dark);
+  root.setProperty('--theme-strong', theme.strong);
+  root.setProperty('--theme-strong-dark', theme.strongDark);
   root.setProperty('--theme-light', theme.light);
   root.setProperty('--sky-top', theme.skyTop);
   root.setProperty('--sky-bottom', theme.skyBottom);
@@ -58,22 +61,33 @@ function showScreen(screen) {
   for (const name of ['home', 'game', 'end']) {
     $(`screen-${name}`).hidden = name !== screen;
   }
+  // Al cambiar de pantalla, el botón que se tocó desaparece: el foco pasa a la
+  // pantalla nueva para que el teclado y el lector de pantalla no se queden en <body>.
+  if (screen !== shownScreen) {
+    shownScreen = screen;
+    $(`screen-${screen}`).focus({ preventScroll: true });
+  }
 }
+
+/** Pantalla que se ve ahora (para mover el foco solo cuando cambia). */
+let shownScreen = '';
 
 /* ---------- Piezas reutilizables ---------- */
 
 /**
  * Una tapita (objeto de juego).
  * @param {string} colorId
- * @param {{ size?: 'normal'|'small'|'mini'|'chip', lit?: boolean, highlighted?: boolean, number?: number|null }} [options]
+ * Con `named` es una imagen con nombre ("Tapita roja"); si no, es decorativa.
+ * @param {{ size?: 'normal'|'small'|'mini'|'chip', lit?: boolean, highlighted?: boolean, number?: number|null, named?: boolean }} [options]
  */
-function tapitaHTML(colorId, { size = 'normal', lit = false, highlighted = false, number = null } = {}) {
+function tapitaHTML(colorId, { size = 'normal', lit = false, highlighted = false, number = null, named = false } = {}) {
   const color = colorById(colorId);
   const classes = ['tapita', `tapita--${size}`];
   if (lit) classes.push('is-counted');
   if (highlighted) classes.push('is-highlighted');
   const badge = number ? `<span class="tapita__number">${number}</span>` : '';
-  return `<span class="${classes.join(' ')}" data-vars="--base:${color.base};--shine:${color.shine}">${badge}</span>`;
+  const a11y = named ? `role="img" aria-label="Tapita ${color.word}"` : 'aria-hidden="true"';
+  return `<span class="${classes.join(' ')}" ${a11y} data-vars="--base:${color.base};--shine:${color.shine}">${badge}</span>`;
 }
 
 /**
@@ -98,8 +112,8 @@ function renderHome(state) {
     $('level-picker'),
     LEVELS.map((level) => {
       const selected = level.id === state.settings.level;
-      return `<button type="button" class="level ${selected ? 'is-selected' : ''}" role="radio"
-        aria-checked="${selected}" data-action="choose-level" data-level="${level.id}">
+      return `<button type="button" class="level ${selected ? 'is-selected' : ''}"
+        aria-pressed="${selected}" data-action="choose-level" data-level="${level.id}">
         ${icon(level.icon, { size: 26, strokeWidth: 3 })}
         <span class="level__name">${level.name}</span>
         <span class="level__hint">${level.hint}</span>
@@ -112,7 +126,7 @@ function renderHome(state) {
     MODES.map((mode) => {
       const theme = THEMES[mode.theme];
       return `<button type="button" class="mode-card" data-action="start-mode" data-mode="${mode.id}"
-        data-vars="--card-main:${theme.main};--card-dark:${theme.dark}">
+        data-vars="--card-main:${theme.strong};--card-dark:${theme.strongDark}">
         <span class="mode-card__deco" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="mode-card__icon">${icon(mode.icon, { size: 32, strokeWidth: 3 })}</span>
         <span class="mode-card__text">
@@ -151,13 +165,34 @@ function renderGame(state) {
     <span class="question__speaker">${icon('volume-2', { size: 24 })}</span>
     <span class="question__text">${round.question}</span>`,
   );
+  // WCAG 2.5.3: el nombre accesible debe contener el texto que se ve en el botón.
+  $('question').setAttribute('aria-label', `Repetir la pregunta: ${round.question}`);
 
   updateZone($('prompt-card'), PROMPT[round.mode](state, round));
   updateZone($('table'), TABLE[round.mode](state, round));
   $('table').className = `table table--${round.mode}`;
   renderTray(state, round);
+  renderStatus(state, round);
 
   updateZone($('adult-tips'), [...mode.tips, ...GENERAL_TIPS].map((tip) => `<li>${tip}</li>`).join(''));
+}
+
+/**
+ * Frase corta para lectores de pantalla (región `role=status`). Solo cambia una
+ * vez por fase; el tablero entero ya no se anuncia en cada redibujo.
+ * @param {GameState} state
+ * @param {Round} round
+ */
+function renderStatus(state, round) {
+  /** @type {Record<GameState['phase'], string>} */
+  const byPhase = {
+    showing: introPhrase(round),
+    helping: 'Mira.',
+    answering: round.question,
+    solved: resultPhrase(round),
+  };
+  const status = $('status');
+  if (status.textContent !== byPhase[state.phase]) status.textContent = byPhase[state.phase];
 }
 
 /** @param {GameState} state */
@@ -189,7 +224,7 @@ const PROMPT = {
   sequence(state, round) {
     const boxes = round.steps.map((color, i) => {
       const filled = i < state.filledSteps.length;
-      return resultBox(tapitaHTML(String(color), { size: 'mini' }), filled);
+      return resultBox(tapitaHTML(String(color), { size: 'mini', named: true }), filled);
     });
     return `<div class="prompt-card__line prompt-card__line--slots"
       data-vars="--slots:${boxes.length}">${boxes.join('')}</div>`;
@@ -200,7 +235,7 @@ const PROMPT = {
     return `<div class="prompt-card__line">
       <span class="prompt-card__icon">${icon('eye-off', { size: 34, strokeWidth: 3 })}</span>
       <span class="prompt-card__arrow">${icon('arrow-right', { size: 34, strokeWidth: 3.5 })}</span>
-      ${resultBox(tapitaHTML(String(round.steps[0]), { size: 'mini' }), solved)}
+      ${resultBox(tapitaHTML(String(round.steps[0]), { size: 'mini', named: true }), solved)}
     </div>`;
   },
 
@@ -209,7 +244,7 @@ const PROMPT = {
     const answer = Number(round.steps[0]);
     const number = `<span class="result-box__number" data-vars="--answer-color:${ANSWER_COLORS[answer - 1]}">${answer}</span>`;
     return `<div class="prompt-card__line">
-      ${tapitaHTML(round.targetColor ?? '', { size: 'small' })}
+      ${tapitaHTML(round.targetColor ?? '', { size: 'small', named: true })}
       <span class="prompt-card__arrow">${icon('arrow-right', { size: 34, strokeWidth: 3.5 })}</span>
       <span class="prompt-card__icon">${icon('cup-soda', { size: 34, strokeWidth: 3 })}</span>
       ${resultBox(number, solved)}
@@ -224,22 +259,26 @@ const TABLE = {
     const showingOrHelping = state.phase === 'showing' || state.phase === 'helping';
     const items = (round.tableColors ?? []).map((color, i) => {
       const lit = table.litIndex === i;
-      return tapitaHTML(color, { lit, highlighted: lit && showingOrHelping, number: lit ? table.litNumber : null });
+      return tapitaHTML(color, {
+        lit,
+        highlighted: lit && showingOrHelping,
+        number: lit ? table.litNumber : null,
+        named: true,
+      });
     });
-    return `<div class="table__row">${items.join('')}</div>
-      <p class="sr-only">${state.phase === 'answering' ? round.question : 'Mira las tapitas.'}</p>`;
+    return `<div class="table__row">${items.join('')}</div>`;
   },
 
   missing(state, round) {
     const { table } = state;
     const shownColors = round.shownColors ?? [];
     const items = shownColors.map((color, i) => {
-      if (i !== round.missingIndex || table.missingSlot === 'all') return tapitaHTML(color);
-      if (table.missingSlot === 'help') return tapitaHTML(color, { highlighted: true });
-      if (table.missingSlot === 'found') return tapitaHTML(color, { lit: true });
-      return '<span class="hole" aria-label="Aquí había una tapita"></span>';
+      if (i !== round.missingIndex || table.missingSlot === 'all') return tapitaHTML(color, { named: true });
+      if (table.missingSlot === 'help') return tapitaHTML(color, { highlighted: true, named: true });
+      if (table.missingSlot === 'found') return tapitaHTML(color, { lit: true, named: true });
+      return '<span class="hole" role="img" aria-label="Aquí había una tapita"></span>';
     });
-    const cloth = table.covered ? '<span class="cloth" aria-label="Una tela tapa las tapitas"></span>' : '';
+    const cloth = table.covered ? '<span class="cloth" role="img" aria-label="Una tela tapa las tapitas"></span>' : '';
     const size = shownColors.length > 4 ? 'table__row--tight' : '';
     return `<div class="table__row ${size}">${items.join('')}</div>${cloth}`;
   },
@@ -250,7 +289,7 @@ const TABLE = {
       const highlighted = table.highlightCup === i;
       const tapita =
         table.cupsLifted && color
-          ? tapitaHTML(color, { lit: highlighted, highlighted: highlighted && state.phase === 'helping' })
+          ? tapitaHTML(color, { lit: highlighted, highlighted: highlighted && state.phase === 'helping', named: true })
           : '';
       return `<div class="cup-slot ${table.cupsLifted ? 'is-lifted' : ''} ${highlighted ? 'is-highlighted' : ''}">
           <span class="cup-slot__spot">${tapita}</span>
@@ -291,7 +330,7 @@ function renderTray(state, round) {
       const classes = ['chunky', 'answer'];
       if (state.phase === 'solved' && String(value) === String(lastValue)) classes.push('is-correct');
       if (state.pulseValue !== null && String(value) === String(state.pulseValue)) classes.push('is-pulsing');
-      if (state.shake && String(value) === String(state.shake.value)) classes.push('is-shaking');
+      if (state.shake && String(value) === String(state.shake.value)) classes.push('is-nudged');
       const disabled = state.phase !== 'answering';
       return `<button type="button" class="${classes.join(' ')}" data-action="choose-answer"
         data-value="${value}" aria-disabled="${disabled}" aria-label="${answerLabel(round, value)}">

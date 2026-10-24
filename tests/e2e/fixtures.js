@@ -44,3 +44,66 @@ export const test = base.extend({
 });
 
 export { expect };
+
+/**
+ * Arranca la página con el reloj simulado (page.clock) y 3 rondas por sesión,
+ * para que un recorrido completo tarde milisegundos y no minutos.
+ * @param {import('@playwright/test').Page} page
+ * @param {Partial<Record<string, unknown>>} [settings]
+ */
+export async function openGame(page, settings = {}) {
+  const stored = JSON.stringify({ rounds: 3, ...settings });
+  await page.addInitScript(
+    ([key, value]) => {
+      localStorage.setItem(key, value);
+    },
+    [STORAGE_KEY, stored],
+  );
+  await page.clock.install();
+  await page.goto('/');
+  await expect(page.locator('#mode-grid .mode-card')).toHaveCount(3);
+}
+
+/**
+ * Estado del juego, leído del mismo módulo que usa la página.
+ * @param {import('@playwright/test').Page} page
+ */
+export async function gameState(page) {
+  return page.evaluate(async () => {
+    // @ts-expect-error: URL del navegador (corre dentro de la página), no un archivo que TypeScript pueda abrir.
+    const { state } = await import('/js/game.js');
+    return {
+      screen: /** @type {string} */ (state.screen),
+      phase: /** @type {string} */ (state.phase),
+      roundNumber: /** @type {number} */ (state.roundNumber),
+      totalRounds: /** @type {number} */ (state.totalRounds),
+      stepIndex: /** @type {number} */ (state.stepIndex),
+      steps: /** @type {Array<string|number>} */ (state.round?.steps ?? []),
+      options: /** @type {Array<string|number>} */ (state.round?.options ?? []),
+      endButtonsVisible: /** @type {boolean} */ (state.endButtonsVisible),
+    };
+  });
+}
+
+/**
+ * Adelanta el reloj simulado hasta que se cumpla la condición.
+ * @param {import('@playwright/test').Page} page
+ * @param {(state: Awaited<ReturnType<typeof gameState>>) => boolean} done
+ * @param {number} [maxMs]
+ */
+export async function runUntil(page, done, maxMs = 60_000) {
+  for (let elapsed = 0; elapsed < maxMs; elapsed += 100) {
+    if (done(await gameState(page))) return;
+    await page.clock.runFor(100);
+  }
+  throw new Error(`La condición no se cumplió en ${maxMs} ms simulados: ${JSON.stringify(await gameState(page))}`);
+}
+
+/**
+ * Toca una respuesta por su valor.
+ * @param {import('@playwright/test').Page} page
+ * @param {string|number} value
+ */
+export function answerButton(page, value) {
+  return page.locator(`#tray .answer[data-value="${value}"]`);
+}

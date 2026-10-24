@@ -48,7 +48,7 @@ import { loadSettings, normalizeSettings, saveSettings } from './storage.js';
  * @property {boolean} helpUsed          Ya recibió la ayuda en esta ronda.
  * @property {Array<string|number>} filledSteps  Respuestas ya acertadas (para la consigna).
  * @property {string|number|null} pulseValue     Respuesta que late tras la ayuda.
- * @property {{ value: string|number, nonce: number }|null} shake  Respuesta que tiembla.
+ * @property {{ value: string|number, nonce: number }|null} shake  Respuesta que se hunde un instante.
  * @property {boolean} hopping           El avatar salta (acierto).
  * @property {'idle'|'think'|'happy'} mood
  * @property {boolean} endButtonsVisible

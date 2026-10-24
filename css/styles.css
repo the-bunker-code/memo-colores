@@ -10,6 +10,8 @@
   /* Tema del modo actual: JavaScript lo cambia */
   --theme-main: #ffa23a;
   --theme-dark: #e07f12;
+  --theme-strong: #c2410c;
+  --theme-strong-dark: #9a3412;
   --theme-light: #fff0d6;
   --sky-top: #ffe7b8;
   --sky-bottom: #fff8ea;
@@ -24,8 +26,10 @@
   --correct-shadow: #9fd88a;
   --orange: #ffa23a;
   --orange-dark: #e07f12; /* tuerca y nivel seleccionado */
-  --blue: #4f8ef7;
-  --blue-dark: #2f6fd8; /* botón principal */
+  /* Botón principal: el azul más oscuro da 4,8:1 con texto blanco (WCAG AA). */
+  --blue: #2f6fd8;
+  --blue-dark: #1f55b0;
+  --focus: #1e3a8a; /* anillo de foco: >= 7:1 sobre todos los cielos */
 
   --font-kid: 'Fredoka', ui-rounded, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-adult: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -74,7 +78,6 @@ body {
   font-size: 14px;
   color: var(--ink);
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 70%) fixed;
-  transition: background 0.4s;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
@@ -89,7 +92,7 @@ button {
 }
 
 :focus-visible {
-  outline: 4px solid var(--blue);
+  outline: 4px solid var(--focus);
   outline-offset: 3px;
 }
 
@@ -142,6 +145,10 @@ button {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 
+.screen:focus {
+  outline: none; /* el foco se mueve aquí al cambiar de pantalla; no es un control */
+}
+
 .screen[hidden] {
   display: none;
 }
@@ -182,7 +189,7 @@ button {
   border: 0;
   border-radius: 16px;
   background: var(--orange);
-  color: #fff;
+  color: var(--ink);
   box-shadow: 0 5px 0 var(--orange-dark);
 }
 .gear:active {
@@ -285,11 +292,11 @@ button {
   margin: 0;
   font-weight: 700;
   font-size: 30px;
-  color: #ff7a4d;
+  color: #d9480f;
   text-shadow: 0 3px 0 #fff;
 }
 .logo__accent {
-  color: #4f8ef7;
+  color: var(--blue);
 }
 
 .greeting {
@@ -329,7 +336,7 @@ button {
 }
 .level.is-selected {
   background: #ffb020;
-  color: #fff;
+  color: var(--ink); /* el blanco sobre este naranja daba 1,8:1 */
   box-shadow: 0 6px 0 var(--orange-dark);
 }
 .level.is-selected:active {
@@ -479,9 +486,9 @@ button {
   margin: 16px auto 10px;
   padding: 5px 16px 5px 5px;
   border-radius: 999px;
-  background: var(--theme-main);
+  background: var(--theme-strong);
   color: #fff;
-  box-shadow: 0 4px 0 var(--theme-dark);
+  box-shadow: 0 4px 0 var(--theme-strong-dark);
   font-weight: 600;
   font-size: 16px;
   white-space: nowrap;
@@ -746,10 +753,11 @@ button {
   outline: 4px solid var(--gold);
   outline-offset: 2px;
   box-shadow: 0 7px 0 var(--gold);
-  animation: pulse 1.1s ease-in-out infinite;
+  /* Late 3 veces y queda quieta (el borde dorado sigue marcando la respuesta). */
+  animation: pulse 1.1s ease-in-out 3;
 }
-.answer.is-shaking {
-  animation: shake 0.35s ease-in-out;
+.answer.is-nudged {
+  animation: nudge 0.35s ease-in-out;
 }
 
 /* Para el adulto. */
@@ -1048,7 +1056,8 @@ button {
 
 /* ============ 9. Animaciones (las únicas permitidas) ============ */
 .is-floating {
-  animation: float 3s ease-in-out infinite;
+  /* La mascota se mece 3 veces y descansa: nada se mueve para siempre. */
+  animation: float 3s ease-in-out 3;
 }
 
 @keyframes float {
@@ -1081,16 +1090,14 @@ button {
     transform: scale(1.06);
   }
 }
-@keyframes shake {
+/* Al equivocarse el botón se hunde un poquito y vuelve: un toque suave, sin sacudidas. */
+@keyframes nudge {
   0%,
   100% {
-    transform: translateX(0);
+    transform: scale(1);
   }
-  25% {
-    transform: translateX(-6px);
-  }
-  75% {
-    transform: translateX(6px);
+  50% {
+    transform: scale(0.95);
   }
 }
 @media (prefers-reduced-motion: reduce) {

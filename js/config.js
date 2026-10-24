@@ -44,10 +44,18 @@ export function colorById(id) {
   return color;
 }
 
-/** Colores fijos de las 3 posiciones de la bandeja (respuestas numéricas). */
-export const ANSWER_COLORS = ['#a77bff', '#4f8ef7', '#ff5d8f'];
+/**
+ * Colores fijos de las 3 posiciones de la bandeja (respuestas numéricas).
+ * Todos dan >= 3:1 sobre blanco (texto grande, WCAG AA).
+ */
+export const ANSWER_COLORS = ['#9061f9', '#4f8ef7', '#d6336c'];
 
-/** @typedef {{ main: string, dark: string, light: string, skyTop: string, skyBottom: string, hills: string }} Theme */
+/**
+ * `strong` y `strongDark` son para superficies con texto blanco encima (tarjetas
+ * y etiqueta del modo): dan >= 4,5:1. `main` y `dark` son los colores de
+ * identidad para fondos, bordes y adornos.
+ * @typedef {{ main: string, dark: string, strong: string, strongDark: string, light: string, skyTop: string, skyBottom: string, hills: string }} Theme
+ */
 
 /**
  * Temas de color. Cada modo tiene el suyo y nunca cambia.
@@ -57,6 +65,8 @@ export const THEMES = {
   home: {
     main: '#ffa23a',
     dark: '#e07f12',
+    strong: '#c2410c',
+    strongDark: '#9a3412',
     light: '#fff0d6',
     skyTop: '#ffe7b8',
     skyBottom: '#fff8ea',
@@ -65,6 +75,8 @@ export const THEMES = {
   blue: {
     main: '#4f8ef7',
     dark: '#2f6fd8',
+    strong: '#2f6fd8',
+    strongDark: '#1f55b0',
     light: '#dbe9ff',
     skyTop: '#c4e2ff',
     skyBottom: '#eef7ff',
@@ -73,6 +85,8 @@ export const THEMES = {
   coral: {
     main: '#ff7a4d',
     dark: '#e0582b',
+    strong: '#c2410c',
+    strongDark: '#9a3412',
     light: '#ffe3d6',
     skyTop: '#ffdcc4',
     skyBottom: '#fff5ec',
@@ -81,6 +95,8 @@ export const THEMES = {
   pink: {
     main: '#ff5d8f',
     dark: '#df3b6e',
+    strong: '#be185d',
+    strongDark: '#9d174d',
     light: '#ffdbe7',
     skyTop: '#ffd6e5',
     skyBottom: '#fff1f6',
@@ -185,7 +201,7 @@ export const TIMING = {
   nextRound: 2800, // pausa tras acertar, antes de la ronda siguiente
   helpStep: 700, // pausa entre pasos de la ayuda
   endButtons: 4000, // los botones del final aparecen después de esto
-  shake: 350, // duración del temblor al equivocarse
+  shake: 350, // duración del toque suave (el botón se hunde) al equivocarse
   hop: 600, // salto del avatar al acertar
   cover: 1300, // cuánto tiempo la tela tapa la mesa
   stepGap: 250, // silencio entre colores de la secuencia
