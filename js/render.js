@@ -1,6 +1,9 @@
 /**
  * render.js — Dibuja la pantalla a partir del estado. Solo lee `state`.
- * Arma HTML con template strings y lo pone con innerHTML, zona por zona.
+ * Arma HTML con template strings y lo pone zona por zona con updateZone (dom.js).
+ * Todo lo que se interpola sale de config.js o de las reglas (constantes del
+ * código), nunca de lo que escribe una persona, así que no hace falta escapar;
+ * si algún día se muestra texto libre, hay que escaparlo antes de interpolarlo.
  * ¿Por qué alcanza sin framework? La pantalla es chica (unas 10 zonas), el
  * estado cambia pocas veces por segundo y cada zona se redibuja entera en
  * menos de un milisegundo. Un framework resolvería un problema que aquí no
@@ -8,6 +11,7 @@
  */
 
 import { ANSWER_COLORS, GENERAL_TIPS, LEVELS, MODES, THEMES, colorById, levelById, modeById } from './config.js';
+import { updateZone } from './dom.js';
 import { icon } from './icons.js';
 import { mascotSVG } from './mascot.js';
 
@@ -55,7 +59,7 @@ function tapitaHTML(colorId, { size = 'normal', lit = false, highlighted = false
   if (lit) classes.push('is-counted');
   if (highlighted) classes.push('is-highlighted');
   const badge = number ? `<span class="tapita__number">${number}</span>` : '';
-  return `<span class="${classes.join(' ')}" style="--base:${color.base};--shine:${color.shine}">${badge}</span>`;
+  return `<span class="${classes.join(' ')}" data-vars="--base:${color.base};--shine:${color.shine}">${badge}</span>`;
 }
 
 function mascotInto(id, mood) {
@@ -71,20 +75,25 @@ function mascotInto(id, mood) {
 function renderHome(state) {
   mascotInto('home-mascot', 'happy');
 
-  $('level-picker').innerHTML = LEVELS.map((level) => {
-    const selected = level.id === state.settings.level;
-    return `<button type="button" class="level ${selected ? 'is-selected' : ''}" role="radio"
+  updateZone(
+    $('level-picker'),
+    LEVELS.map((level) => {
+      const selected = level.id === state.settings.level;
+      return `<button type="button" class="level ${selected ? 'is-selected' : ''}" role="radio"
         aria-checked="${selected}" data-action="choose-level" data-level="${level.id}">
         ${icon(level.icon, { size: 26, strokeWidth: 3 })}
         <span class="level__name">${level.name}</span>
         <span class="level__hint">${level.hint}</span>
       </button>`;
-  }).join('');
+    }).join(''),
+  );
 
-  $('mode-grid').innerHTML = MODES.map((mode) => {
-    const theme = THEMES[mode.theme];
-    return `<button type="button" class="mode-card" data-action="start-mode" data-mode="${mode.id}"
-        style="--card-main:${theme.main};--card-dark:${theme.dark}">
+  updateZone(
+    $('mode-grid'),
+    MODES.map((mode) => {
+      const theme = THEMES[mode.theme];
+      return `<button type="button" class="mode-card" data-action="start-mode" data-mode="${mode.id}"
+        data-vars="--card-main:${theme.main};--card-dark:${theme.dark}">
         <span class="mode-card__deco" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="mode-card__icon">${icon(mode.icon, { size: 32, strokeWidth: 3 })}</span>
         <span class="mode-card__text">
@@ -92,7 +101,8 @@ function renderHome(state) {
           <span class="mode-card__subtitle">${mode.subtitle}</span>
         </span>
       </button>`;
-  }).join('');
+    }).join(''),
+  );
 }
 
 /* ---------- Juego ---------- */
@@ -108,20 +118,26 @@ function renderGame(state) {
 
   renderProgress(state);
 
-  $('mode-chip').innerHTML = `
+  updateZone(
+    $('mode-chip'),
+    `
     <span class="mode-chip__icon">${icon(mode.icon, { size: 18, strokeWidth: 3 })}</span>
-    <span>${mode.name} · ${levelById(round.level).name}</span>`;
+    <span>${mode.name} · ${levelById(round.level).name}</span>`,
+  );
 
-  $('question').innerHTML = `
+  updateZone(
+    $('question'),
+    `
     <span class="question__speaker">${icon('volume-2', { size: 24 })}</span>
-    <span class="question__text">${round.question}</span>`;
+    <span class="question__text">${round.question}</span>`,
+  );
 
-  $('prompt-card').innerHTML = PROMPT[round.mode](state);
-  $('table').innerHTML = TABLE[round.mode](state);
+  updateZone($('prompt-card'), PROMPT[round.mode](state));
+  updateZone($('table'), TABLE[round.mode](state));
   $('table').className = `table table--${round.mode}`;
   renderTray(state);
 
-  $('adult-tips').innerHTML = [...mode.tips, ...GENERAL_TIPS].map((tip) => `<li>${tip}</li>`).join('');
+  updateZone($('adult-tips'), [...mode.tips, ...GENERAL_TIPS].map((tip) => `<li>${tip}</li>`).join(''));
 }
 
 function renderProgress(state) {
@@ -130,9 +146,12 @@ function renderProgress(state) {
   const bar = $('progress');
   bar.setAttribute('aria-valuenow', String(done));
   bar.setAttribute('aria-valuemax', String(state.totalRounds));
-  bar.innerHTML = `
-    <span class="progress__fill" style="width:${percent}%"></span>
-    <span class="progress__text">${state.roundNumber} / ${state.totalRounds}</span>`;
+  updateZone(
+    bar,
+    `
+    <span class="progress__fill" data-vars="--progress:${percent}%"></span>
+    <span class="progress__text">${state.roundNumber} / ${state.totalRounds}</span>`,
+  );
 }
 
 /** Caja de resultado: "?" hasta acertar, luego la respuesta. */
@@ -147,7 +166,7 @@ const PROMPT = {
       return resultBox(tapitaHTML(color, { size: 'mini' }), filled);
     });
     return `<div class="prompt-card__line prompt-card__line--slots"
-      style="--slots:${boxes.length}">${boxes.join('')}</div>`;
+      data-vars="--slots:${boxes.length}">${boxes.join('')}</div>`;
   },
 
   missing(state) {
@@ -162,7 +181,7 @@ const PROMPT = {
   cups(state) {
     const solved = state.phase === 'solved';
     const answer = Number(state.round.steps[0]);
-    const number = `<span class="result-box__number" style="color:${ANSWER_COLORS[answer - 1]}">${answer}</span>`;
+    const number = `<span class="result-box__number" data-vars="--answer-color:${ANSWER_COLORS[answer - 1]}">${answer}</span>`;
     return `<div class="prompt-card__line">
       ${tapitaHTML(state.round.targetColor, { size: 'small' })}
       <span class="prompt-card__arrow">${icon('arrow-right', { size: 34, strokeWidth: 3.5 })}</span>
@@ -235,7 +254,7 @@ function renderTray(state) {
   const tray = $('tray');
   tray.classList.toggle('tray--waiting', waiting);
 
-  tray.innerHTML = round.options
+  const html = round.options
     .map((value, position) => {
       const classes = ['chunky', 'answer'];
       if (state.phase === 'solved' && String(value) === String(lastValue)) classes.push('is-correct');
@@ -248,6 +267,7 @@ function renderTray(state) {
       </button>`;
     })
     .join('');
+  updateZone(tray, html);
 }
 
 function answerLabel(round, value) {
@@ -262,17 +282,20 @@ function colorAnswerHTML(colorId) {
 function numberAnswerHTML(n, position) {
   const color = ANSWER_COLORS[position];
   const dots = Array.from({ length: n }, () => '<i></i>').join('');
-  return `<span class="answer__number" style="color:${color}">${n}</span>
-    <span class="answer__dots" style="--dot:${color}">${dots}</span>`;
+  return `<span class="answer__number" data-vars="--answer-color:${color}">${n}</span>
+    <span class="answer__dots" data-vars="--dot:${color}">${dots}</span>`;
 }
 
 /* ---------- Final ---------- */
 
 function renderEnd(state) {
   mascotInto('end-mascot', 'happy');
-  $('end-stars').innerHTML = Array.from({ length: state.totalRounds }, () =>
-    icon('star', { size: 44, fill: 'currentColor', strokeWidth: 2 }),
-  ).join('');
+  updateZone(
+    $('end-stars'),
+    Array.from({ length: state.totalRounds }, () =>
+      icon('star', { size: 44, fill: 'currentColor', strokeWidth: 2 }),
+    ).join(''),
+  );
   $('end-stars').setAttribute('aria-label', `${state.totalRounds} estrellas`);
   $('end-stars').setAttribute('role', 'img');
   $('end-buttons').classList.toggle('is-visible', state.endButtonsVisible);

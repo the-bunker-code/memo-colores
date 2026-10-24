@@ -34,6 +34,20 @@
 }
 
 /* ============ 2. Base ============ */
+
+/*
+  Letra redondeada servida desde este sitio (no se pide nada a Google Fonts).
+  El nombre del archivo lleva la versión: si cambia la fuente, cambia el nombre
+  y la caché larga de _headers no sirve la vieja.
+*/
+@font-face {
+  font-family: 'Fredoka';
+  src: url('../fonts/fredoka-latin-v17.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -42,12 +56,22 @@
 
 html {
   color-scheme: light;
+  /* Zonas seguras de celulares con muesca (viewport-fit=cover). */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Un elemento con `hidden` nunca se ve, aunque otra regla le ponga `display`. */
+[hidden] {
+  display: none !important;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-kid);
+  font-size: 14px;
   color: var(--ink);
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 70%) fixed;
   transition: background 0.4s;
@@ -434,7 +458,7 @@ button {
   inset: 0 auto 0 0;
   background: linear-gradient(90deg, #ffe066, var(--gold));
   border-radius: 9px;
-  transition: width 0.4s;
+  width: var(--progress, 0%); /* render.js lo pone con data-vars (la CSP no deja style="") */
 }
 .progress__text {
   position: absolute;
@@ -575,6 +599,7 @@ button {
 .result-box__number {
   font-weight: 700;
   font-size: 40px;
+  color: var(--answer-color);
 }
 
 /* Zona de juego: una mesa de madera, como en Dados y Tapitas. */
@@ -697,6 +722,7 @@ button {
   font-weight: 700;
   font-size: 54px;
   line-height: 1;
+  color: var(--answer-color);
 }
 .answer__dots {
   display: flex;

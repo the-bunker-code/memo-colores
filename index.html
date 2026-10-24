@@ -1,46 +1,50 @@
 <!doctype html>
-<html>
+<html lang="es">
   <head>
-    <meta charset="utf8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <style>
-      :root {
-        color-scheme: light;
-        box-sizing: border-box;
-        padding-top: env(safe-area-inset-top, 0px);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-      }
-      html {
-        scroll-padding-top: env(safe-area-inset-top, 0px);
-      }
-      body {
-        margin: 0;
-        padding: 0;
-        font:
-          14px -apple-system,
-          BlinkMacSystemFont,
-          sans-serif;
-        background: #fff;
-        color: #000;
-      }
-      img {
-        max-width: 100%;
-      }
-      [hidden]:not([hidden='until-found' i]) {
-        display: none !important;
-      }
-    </style>
-  </head>
-  <body>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Juego de memoria con tapitas de colores para niñas y niños de 3 a 7 años: repetir colores, adivinar cuál falta y encontrar la tapita bajo el vaso."
+    />
+    <!--
+      Política de seguridad (CSP): solo se cargan archivos de este mismo sitio y
+      ningún script o estilo escrito dentro del HTML. Va aquí además de en _headers
+      para que también funcione en GitHub Pages, que no permite cabeceras propias.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#ffe7b8" />
     <title>Memo Colores</title>
-    <meta name="claude:viewport-fit-sides" content="cover" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
+
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+
+    <!-- Letra redondeada, servida desde este sitio: no se envía nada a terceros. -->
+    <link rel="preload" href="fonts/fredoka-latin-v17.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="css/styles.css" />
 
-    <!-- main.js borra este aviso al arrancar. Si sigue visible, los módulos no cargaron. -->
+    <!--
+      modulepreload: el navegador descarga todos los módulos a la vez, en vez de
+      descubrirlos de a uno (main → game → rules → config). Si agregas un módulo
+      a js/, agrégalo también aquí.
+    -->
+    <link rel="modulepreload" href="js/main.js" />
+    <link rel="modulepreload" href="js/game.js" />
+    <link rel="modulepreload" href="js/render.js" />
+    <link rel="modulepreload" href="js/rules.js" />
+    <link rel="modulepreload" href="js/config.js" />
+    <link rel="modulepreload" href="js/spanish.js" />
+    <link rel="modulepreload" href="js/audio.js" />
+    <link rel="modulepreload" href="js/storage.js" />
+    <link rel="modulepreload" href="js/icons.js" />
+    <link rel="modulepreload" href="js/mascot.js" />
+    <link rel="modulepreload" href="js/settings-panel.js" />
+  </head>
+  <body>
+    <noscript><p class="boot-warning">Este juego necesita JavaScript.</p></noscript>
     <p class="boot-warning" id="boot-warning">Cargando… si ves esto, abre con un servidor local.</p>
 
     <svg class="hills" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
