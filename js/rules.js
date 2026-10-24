@@ -8,14 +8,18 @@
  */
 
 import { COLOR_IDS, LEVEL_RULES, colorById, TEXT } from './config.js';
+
+/** @typedef {import('./config.js').ModeId} ModeId */
+/** @typedef {import('./config.js').LevelId} LevelId */
+/** @typedef {() => number} Random  Devuelve un número en [0, 1), como Math.random. */
 import { capitalize, joinWithAnd, numberWord } from './spanish.js';
 
 /**
  * Una ronda. Es inmutable: lo que la niña hace en ella vive en `state`.
  * @typedef {Object} Round
  * @property {string} key         Identifica la tirada, para no repetirla seguida.
- * @property {'sequence'|'missing'|'cups'} mode
- * @property {'easy'|'medium'|'hard'} level
+ * @property {ModeId} mode
+ * @property {LevelId} level
  * @property {Array<string|number>} options  Las 3 respuestas, ordenadas.
  * @property {Array<string|number>} steps    Respuestas esperadas, en orden (1 o más toques).
  * @property {string} question    Lo que dice el globo y la voz.
@@ -28,12 +32,22 @@ import { capitalize, joinWithAnd, numberWord } from './spanish.js';
 
 /* ---------- Utilidades de azar (reciben `random` para poder probarlas) ---------- */
 
-/** Entero entre 0 y max-1. */
+/**
+ * Entero entre 0 y max-1.
+ * @param {number} max
+ * @param {Random} random
+ */
 function randomInt(max, random) {
   return Math.floor(random() * max);
 }
 
-/** Copia mezclada (Fisher-Yates). No modifica el arreglo original. */
+/**
+ * Copia mezclada (Fisher-Yates). No modifica el arreglo original.
+ * @template T
+ * @param {T[]} items
+ * @param {Random} random
+ * @returns {T[]}
+ */
 export function shuffle(items, random) {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -43,21 +57,37 @@ export function shuffle(items, random) {
   return copy;
 }
 
-/** Toma `count` elementos distintos al azar. */
+/**
+ * Toma `count` elementos distintos al azar.
+ * @template T
+ * @param {T[]} items
+ * @param {number} count
+ * @param {Random} random
+ * @returns {T[]}
+ */
 function pickDistinct(items, count, random) {
   return shuffle(items, random).slice(0, count);
 }
 
-/** Ordena colores según el arcoíris de config (rojo → rosado). */
+/**
+ * Ordena colores según el arcoíris de config (rojo → rosado).
+ * @param {string[]} colorIds
+ */
 export function sortColors(colorIds) {
   return [...colorIds].sort((a, b) => COLOR_IDS.indexOf(a) - COLOR_IDS.indexOf(b));
 }
 
 /* ---------- Modo "Colores": repetir una secuencia ---------- */
 
+/**
+ * @param {LevelId} level
+ * @param {Random} random
+ * @returns {Round}
+ */
 function createSequenceRound(level, random) {
   const { length } = LEVEL_RULES.sequence[level];
   const tableColors = pickDistinct(COLOR_IDS, 3, random);
+  /** @type {string[]} */
   const steps = [];
   while (steps.length < length) {
     const next = tableColors[randomInt(3, random)];
@@ -78,6 +108,11 @@ function createSequenceRound(level, random) {
 
 /* ---------- Modo "¿Cuál falta?": una tapita desaparece ---------- */
 
+/**
+ * @param {LevelId} level
+ * @param {Random} random
+ * @returns {Round}
+ */
 function createMissingRound(level, random) {
   const { count } = LEVEL_RULES.missing[level];
   const shownColors = pickDistinct(COLOR_IDS, count, random);
@@ -101,6 +136,11 @@ function createMissingRound(level, random) {
 
 /* ---------- Modo "¿Dónde está?": la tapita bajo el vaso ---------- */
 
+/**
+ * @param {LevelId} level
+ * @param {Random} random
+ * @returns {Round}
+ */
 function createCupsRound(level, random) {
   const { hidden } = LEVEL_RULES.cups[level];
   const colors = pickDistinct(COLOR_IDS, hidden, random);
@@ -125,6 +165,7 @@ function createCupsRound(level, random) {
   };
 }
 
+/** @type {Record<ModeId, (level: LevelId, random: Random) => Round>} */
 const ROUND_BUILDERS = {
   sequence: createSequenceRound,
   missing: createMissingRound,
@@ -133,8 +174,8 @@ const ROUND_BUILDERS = {
 
 /**
  * Crea una ronda nueva que no repite la tirada anterior.
- * @param {{ mode: string, level: string }} settings
- * @param {{ previousKey?: string|null, random?: () => number }} [context]
+ * @param {{ mode: ModeId, level: LevelId }} settings
+ * @param {{ previousKey?: string|null, random?: Random }} [context]
  * @returns {Round}
  */
 export function createRound(settings, { previousKey = null, random = Math.random } = {}) {
@@ -149,7 +190,10 @@ export function createRound(settings, { previousKey = null, random = Math.random
 
 /* ---------- Frases ---------- */
 
-/** Palabra de un color con mayúscula, para decirla sola: "Roja." */
+/**
+ * Palabra de un color con mayúscula, para decirla sola: "Roja."
+ * @param {string} colorId
+ */
 export function colorPhrase(colorId) {
   return `${capitalize(colorById(colorId).word)}.`;
 }
@@ -161,10 +205,10 @@ export function colorPhrase(colorId) {
  */
 export function resultPhrase(round) {
   if (round.mode === 'sequence') {
-    return `${TEXT.yes} ${capitalize(joinWithAnd(round.steps.map((id) => colorById(id).word)))}.`;
+    return `${TEXT.yes} ${capitalize(joinWithAnd(round.steps.map((id) => colorById(String(id)).word)))}.`;
   }
   if (round.mode === 'missing') {
-    return `${TEXT.yes} Faltaba la ${colorById(round.steps[0]).word}.`;
+    return `${TEXT.yes} Faltaba la ${colorById(String(round.steps[0])).word}.`;
   }
   return `${TEXT.yes} En el vaso ${numberWord(Number(round.steps[0]))}.`;
 }
@@ -176,9 +220,9 @@ export function resultPhrase(round) {
  */
 export function helpPhrase(round, stepIndex = 0) {
   if (round.mode === 'sequence') {
-    return `Ahora va la ${colorById(round.steps[stepIndex]).word}.`;
+    return `Ahora va la ${colorById(String(round.steps[stepIndex])).word}.`;
   }
-  if (round.mode === 'missing') return `Faltaba la ${colorById(round.steps[0]).word}.`;
+  if (round.mode === 'missing') return `Faltaba la ${colorById(String(round.steps[0])).word}.`;
   return `Está en el vaso ${numberWord(Number(round.steps[0]))}.`;
 }
 
@@ -186,7 +230,7 @@ export function helpPhrase(round, stepIndex = 0) {
 export function introPhrase(round) {
   if (round.mode === 'sequence') return 'Mira y escucha.';
   if (round.mode === 'missing') return 'Mira las tapitas.';
-  return round.cupColors.filter(Boolean).length > 1 ? 'Mira las tapitas.' : 'Mira la tapita.';
+  return (round.cupColors ?? []).filter(Boolean).length > 1 ? 'Mira las tapitas.' : 'Mira la tapita.';
 }
 
 /**

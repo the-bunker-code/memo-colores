@@ -13,6 +13,13 @@
  * predecible para la niña.
  * `word` va en femenino porque siempre hablamos de "la tapita roja".
  */
+/**
+ * @typedef {'sequence'|'missing'|'cups'} ModeId
+ * @typedef {'easy'|'medium'|'hard'} LevelId
+ * @typedef {{ id: string, word: string, base: string, shine: string }} TapitaColor
+ */
+
+/** @type {TapitaColor[]} */
 export const COLORS = [
   { id: 'red', word: 'roja', base: '#e5392f', shine: '#ff8f85' },
   { id: 'orange', word: 'naranja', base: '#f7821b', shine: '#ffc483' },
@@ -25,9 +32,16 @@ export const COLORS = [
 
 export const COLOR_IDS = COLORS.map((color) => color.id);
 
-/** @param {string} id */
+/**
+ * Busca un color por id. Un id que no existe es un error de programación (los
+ * ids salen de COLORS y de las reglas), por eso lanza en vez de devolver nada.
+ * @param {string} id
+ * @returns {TapitaColor}
+ */
 export function colorById(id) {
-  return COLORS.find((color) => color.id === id);
+  const color = COLORS.find((candidate) => candidate.id === id);
+  if (!color) throw new Error(`Color desconocido: ${id}`);
+  return color;
 }
 
 /** Colores fijos de las 3 posiciones de la bandeja (respuestas numéricas). */

@@ -7,13 +7,13 @@
 
 import { LEVELS, LOOK_TIME, MODES, ROUND_OPTIONS } from './config.js';
 
-const STORAGE_KEY = 'memo-colores:settings:v1';
+export const STORAGE_KEY = 'memo-colores:settings:v1';
 
 /**
  * Ajustes del juego. Un solo objeto, para guardarlo y validarlo de una vez.
  * @typedef {Object} Settings
- * @property {'sequence'|'missing'|'cups'} mode   Modo elegido.
- * @property {'easy'|'medium'|'hard'} level       Nivel.
+ * @property {import('./config.js').ModeId} mode   Modo elegido.
+ * @property {import('./config.js').LevelId} level       Nivel.
  * @property {3|5|8} rounds                       Rondas por sesión.
  * @property {boolean} voice                      Voz encendida.
  * @property {boolean} sound                      Tonos encendidos.
@@ -37,6 +37,11 @@ export const DEFAULT_SETTINGS = Object.freeze({
  */
 export function normalizeSettings(raw) {
   const input = raw && typeof raw === 'object' ? /** @type {Record<string, unknown>} */ (raw) : {};
+  /**
+   * @param {unknown} value
+   * @param {readonly unknown[]} allowed
+   * @param {any} fallback
+   */
   const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
   return {
     mode: pick(
