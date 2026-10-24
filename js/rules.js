@@ -107,7 +107,9 @@ function createCupsRound(level, random) {
   const positions = pickDistinct([0, 1, 2], hidden, random);
   /** @type {Array<string|null>} */
   const cupColors = [null, null, null];
-  positions.forEach((position, i) => { cupColors[position] = colors[i]; });
+  positions.forEach((position, i) => {
+    cupColors[position] = colors[i];
+  });
   const targetColor = colors[0];
   const answer = cupColors.indexOf(targetColor) + 1; // vasos numerados 1, 2, 3
   const question = hidden > 1 ? `¿Dónde está la ${colorById(targetColor).word}?` : '¿Dónde está?';

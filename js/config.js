@@ -35,10 +35,38 @@ export const ANSWER_COLORS = ['#a77bff', '#4f8ef7', '#ff5d8f'];
 
 /** Temas de color. Cada modo tiene el suyo y nunca cambia. */
 export const THEMES = {
-  home: { main: '#ffa23a', dark: '#e07f12', light: '#fff0d6', skyTop: '#ffe7b8', skyBottom: '#fff8ea', hills: '#b9e48f' },
-  blue: { main: '#4f8ef7', dark: '#2f6fd8', light: '#dbe9ff', skyTop: '#c4e2ff', skyBottom: '#eef7ff', hills: '#a8dc86' },
-  coral: { main: '#ff7a4d', dark: '#e0582b', light: '#ffe3d6', skyTop: '#ffdcc4', skyBottom: '#fff5ec', hills: '#ffc58f' },
-  pink: { main: '#ff5d8f', dark: '#df3b6e', light: '#ffdbe7', skyTop: '#ffd6e5', skyBottom: '#fff1f6', hills: '#ffb6cd' },
+  home: {
+    main: '#ffa23a',
+    dark: '#e07f12',
+    light: '#fff0d6',
+    skyTop: '#ffe7b8',
+    skyBottom: '#fff8ea',
+    hills: '#b9e48f',
+  },
+  blue: {
+    main: '#4f8ef7',
+    dark: '#2f6fd8',
+    light: '#dbe9ff',
+    skyTop: '#c4e2ff',
+    skyBottom: '#eef7ff',
+    hills: '#a8dc86',
+  },
+  coral: {
+    main: '#ff7a4d',
+    dark: '#e0582b',
+    light: '#ffe3d6',
+    skyTop: '#ffdcc4',
+    skyBottom: '#fff5ec',
+    hills: '#ffc58f',
+  },
+  pink: {
+    main: '#ff5d8f',
+    dark: '#df3b6e',
+    light: '#ffdbe7',
+    skyTop: '#ffd6e5',
+    skyBottom: '#fff1f6',
+    hills: '#ffb6cd',
+  },
 };
 
 /**

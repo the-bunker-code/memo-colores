@@ -10,7 +10,14 @@
 import { LEVEL_RULES, LOOK_TIME, TEXT, TIMING } from './config.js';
 import { createRound, colorPhrase, helpPhrase, introPhrase, optionWord, resultPhrase } from './rules.js';
 import {
-  configureAudio, playCountTone, playNeutralTone, playSoftErrorTone, playSuccessTone, say, stopSpeaking, unlockAudio,
+  configureAudio,
+  playCountTone,
+  playNeutralTone,
+  playSoftErrorTone,
+  playSuccessTone,
+  say,
+  stopSpeaking,
+  unlockAudio,
 } from './audio.js';
 import { loadSettings, normalizeSettings, saveSettings } from './storage.js';
 

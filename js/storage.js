@@ -39,8 +39,16 @@ export function normalizeSettings(raw) {
   const input = raw && typeof raw === 'object' ? /** @type {Record<string, unknown>} */ (raw) : {};
   const pick = (value, allowed, fallback) => (allowed.includes(value) ? value : fallback);
   return {
-    mode: pick(input.mode, MODES.map((m) => m.id), DEFAULT_SETTINGS.mode),
-    level: pick(input.level, LEVELS.map((l) => l.id), DEFAULT_SETTINGS.level),
+    mode: pick(
+      input.mode,
+      MODES.map((m) => m.id),
+      DEFAULT_SETTINGS.mode,
+    ),
+    level: pick(
+      input.level,
+      LEVELS.map((l) => l.id),
+      DEFAULT_SETTINGS.level,
+    ),
     rounds: pick(Number(input.rounds), ROUND_OPTIONS, DEFAULT_SETTINGS.rounds),
     voice: typeof input.voice === 'boolean' ? input.voice : DEFAULT_SETTINGS.voice,
     sound: typeof input.sound === 'boolean' ? input.sound : DEFAULT_SETTINGS.sound,

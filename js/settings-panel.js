@@ -15,9 +15,30 @@ const SECTIONS = [
   { key: 'mode', legend: 'Modo', options: MODES.map((m) => ({ value: m.id, label: m.name })) },
   { key: 'level', legend: 'Nivel', options: LEVELS.map((l) => ({ value: l.id, label: l.name })) },
   { key: 'rounds', legend: 'Rondas por sesión', options: ROUND_OPTIONS.map((n) => ({ value: n, label: String(n) })) },
-  { key: 'lookTime', legend: 'Tiempo para mirar', options: [{ value: 'normal', label: 'Normal' }, { value: 'long', label: 'Más tiempo' }] },
-  { key: 'voice', legend: 'Voz', options: [{ value: true, label: 'Sí' }, { value: false, label: 'No' }] },
-  { key: 'sound', legend: 'Sonidos', options: [{ value: true, label: 'Sí' }, { value: false, label: 'No' }] },
+  {
+    key: 'lookTime',
+    legend: 'Tiempo para mirar',
+    options: [
+      { value: 'normal', label: 'Normal' },
+      { value: 'long', label: 'Más tiempo' },
+    ],
+  },
+  {
+    key: 'voice',
+    legend: 'Voz',
+    options: [
+      { value: true, label: 'Sí' },
+      { value: false, label: 'No' },
+    ],
+  },
+  {
+    key: 'sound',
+    legend: 'Sonidos',
+    options: [
+      { value: true, label: 'Sí' },
+      { value: false, label: 'No' },
+    ],
+  },
 ];
 
 let draft = null;
@@ -47,7 +68,10 @@ export function setupSettingsPanel() {
   form.addEventListener('click', (event) => {
     const button = event.target.closest('[data-settings]');
     if (!button) return;
-    if (button.dataset.settings === 'home') { closeWithoutSideEffects(); goHome(); }
+    if (button.dataset.settings === 'home') {
+      closeWithoutSideEffects();
+      goHome();
+    }
     if (button.dataset.settings === 'cancel') closeWithoutSaving();
   });
 
@@ -78,13 +102,15 @@ function closeWithoutSaving() {
 }
 
 function sectionHTML(section) {
-  const pills = section.options.map((option) => {
-    const checked = String(draft[section.key]) === String(option.value);
-    const id = `setting-${section.key}-${option.value}`;
-    return `<input class="pill__input" type="radio" name="${section.key}" id="${id}"
+  const pills = section.options
+    .map((option) => {
+      const checked = String(draft[section.key]) === String(option.value);
+      const id = `setting-${section.key}-${option.value}`;
+      return `<input class="pill__input" type="radio" name="${section.key}" id="${id}"
         value="${option.value}" ${checked ? 'checked' : ''}>
       <label class="pill" for="${id}">${option.label}</label>`;
-  }).join('');
+    })
+    .join('');
   return `<fieldset class="settings__section">
       <legend class="settings__legend">${section.legend}</legend>
       <div class="settings__pills">${pills}</div>

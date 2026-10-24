@@ -201,9 +201,10 @@ const TABLE = {
     const { round, table } = state;
     const cups = round.cupColors.map((color, i) => {
       const highlighted = table.highlightCup === i;
-      const tapita = table.cupsLifted && color
-        ? tapitaHTML(color, { lit: highlighted, highlighted: highlighted && state.phase === 'helping' })
-        : '';
+      const tapita =
+        table.cupsLifted && color
+          ? tapitaHTML(color, { lit: highlighted, highlighted: highlighted && state.phase === 'helping' })
+          : '';
       return `<div class="cup-slot ${table.cupsLifted ? 'is-lifted' : ''} ${highlighted ? 'is-highlighted' : ''}">
           <span class="cup-slot__spot">${tapita}</span>
           ${cupSVG(i)}
@@ -234,17 +235,19 @@ function renderTray(state) {
   const tray = $('tray');
   tray.classList.toggle('tray--waiting', waiting);
 
-  tray.innerHTML = round.options.map((value, position) => {
-    const classes = ['chunky', 'answer'];
-    if (state.phase === 'solved' && String(value) === String(lastValue)) classes.push('is-correct');
-    if (state.pulseValue !== null && String(value) === String(state.pulseValue)) classes.push('is-pulsing');
-    if (state.shake && String(value) === String(state.shake.value)) classes.push('is-shaking');
-    const disabled = state.phase !== 'answering';
-    return `<button type="button" class="${classes.join(' ')}" data-action="choose-answer"
+  tray.innerHTML = round.options
+    .map((value, position) => {
+      const classes = ['chunky', 'answer'];
+      if (state.phase === 'solved' && String(value) === String(lastValue)) classes.push('is-correct');
+      if (state.pulseValue !== null && String(value) === String(state.pulseValue)) classes.push('is-pulsing');
+      if (state.shake && String(value) === String(state.shake.value)) classes.push('is-shaking');
+      const disabled = state.phase !== 'answering';
+      return `<button type="button" class="${classes.join(' ')}" data-action="choose-answer"
         data-value="${value}" aria-disabled="${disabled}" aria-label="${answerLabel(round, value)}">
         ${round.mode === 'cups' ? numberAnswerHTML(Number(value), position) : colorAnswerHTML(String(value))}
       </button>`;
-  }).join('');
+    })
+    .join('');
 }
 
 function answerLabel(round, value) {
@@ -267,8 +270,9 @@ function numberAnswerHTML(n, position) {
 
 function renderEnd(state) {
   mascotInto('end-mascot', 'happy');
-  $('end-stars').innerHTML = Array.from({ length: state.totalRounds },
-    () => icon('star', { size: 44, fill: 'currentColor', strokeWidth: 2 })).join('');
+  $('end-stars').innerHTML = Array.from({ length: state.totalRounds }, () =>
+    icon('star', { size: 44, fill: 'currentColor', strokeWidth: 2 }),
+  ).join('');
   $('end-stars').setAttribute('aria-label', `${state.totalRounds} estrellas`);
   $('end-stars').setAttribute('role', 'img');
   $('end-buttons').classList.toggle('is-visible', state.endButtonsVisible);

@@ -5,7 +5,21 @@
  * "roja, azul". Concentrar esas reglas aquí evita errores repartidos.
  */
 
-const NUMBER_WORDS = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce'];
+const NUMBER_WORDS = [
+  'cero',
+  'uno',
+  'dos',
+  'tres',
+  'cuatro',
+  'cinco',
+  'seis',
+  'siete',
+  'ocho',
+  'nueve',
+  'diez',
+  'once',
+  'doce',
+];
 
 /**
  * Número en palabras (0 a 12). Con `feminine` el 1 se dice "una".

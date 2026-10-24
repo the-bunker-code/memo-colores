@@ -40,7 +40,10 @@ function pickVoice() {
   const voices = synth.getVoices();
   for (const lang of VOICE_LANGS) {
     const exact = voices.find((v) => v.lang.replace('_', '-').toLowerCase() === lang.toLowerCase());
-    if (exact) { chosenVoice = exact; return; }
+    if (exact) {
+      chosenVoice = exact;
+      return;
+    }
   }
   chosenVoice = voices.find((v) => v.lang.toLowerCase().startsWith('es')) ?? null;
 }
@@ -49,7 +52,11 @@ function pickVoice() {
 globalThis.speechSynthesis?.addEventListener?.('voiceschanged', pickVoice);
 
 export function stopSpeaking() {
-  try { globalThis.speechSynthesis?.cancel(); } catch { /* sin voz */ }
+  try {
+    globalThis.speechSynthesis?.cancel();
+  } catch {
+    /* sin voz */
+  }
 }
 
 /**
@@ -63,7 +70,12 @@ export function say(text) {
   if (!voiceEnabled || !synth || !text) return Promise.resolve();
   return new Promise((resolve) => {
     let done = false;
-    const finish = () => { if (!done) { done = true; resolve(); } };
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
     try {
       synth.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -99,7 +111,9 @@ function tone(frequency, durationSec, volume = 0.12, delaySec = 0) {
 }
 
 /** Tono que sube con el número: 1 grave, 2 un poco más agudo... */
-export function playCountTone(n) { tone(330 + n * 20, 0.08); }
+export function playCountTone(n) {
+  tone(330 + n * 20, 0.08);
+}
 
 /** Acierto: tres notas ascendentes (do, mi, sol). */
 export function playSuccessTone() {
@@ -107,7 +121,11 @@ export function playSuccessTone() {
 }
 
 /** Error: un tono grave y suave. Nunca un sonido feo. */
-export function playSoftErrorTone() { tone(240, 0.14, 0.08); }
+export function playSoftErrorTone() {
+  tone(240, 0.14, 0.08);
+}
 
 /** Neutro: tapar, destapar, mover un vaso. */
-export function playNeutralTone() { tone(440, 0.07, 0.06); }
+export function playNeutralTone() {
+  tone(440, 0.07, 0.06);
+}
