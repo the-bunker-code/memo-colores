@@ -9,7 +9,7 @@
 :root {
   /* Tema del modo actual: JavaScript lo cambia */
   --theme-main: #ffa23a;
-  --theme-dark: #e07f12;
+  --theme-dark: #af630e; /* sombra y texto sobre blanco (>= 4,5:1) */
   --theme-strong: #c2410c;
   --theme-strong-dark: #9a3412;
   --theme-light: #fff0d6;
@@ -17,11 +17,18 @@
   --sky-bottom: #fff8ea;
   --hills: #b9e48f;
 
-  /* Fijos */
+  /* Neutros */
   --ink: #2b2d42;
-  --muted: #6b6f80;
+  --on-theme: #1a1b29; /* texto sobre --theme-main */
+  --muted: #5c5f6e;
   --line: #ece7dc;
+  --white: #ffffff;
+  --edge: #d9d2c2; /* sombra de relieve bajo botones y tarjetas blancas */
+  --edge-soft: #e6dcc6;
+
+  /* Acentos y respuestas */
   --gold: #ffc21a;
+  --gold-dark: #e0a400;
   --correct-bg: #e4f8dc;
   --correct-shadow: #9fd88a;
   --orange: #ffa23a;
@@ -31,10 +38,24 @@
   --blue-dark: #1f55b0;
   --focus: #1e3a8a; /* anillo de foco: >= 7:1 sobre todos los cielos */
 
+  /* Madera (piezas físicas) */
+  --wood-light: #f3c98d;
+  --wood-dark: #e9b673;
+  --wood-edge: #c98b45;
+  --wood-shadow: #a96f30;
+
+  /* Forma y relieve */
+  --radius-small: 14px;
+  --radius: 20px;
+  --radius-large: 28px;
+  --press-depth: 6px;
+  --press-travel: 3px;
+  --card-shadow: 0 6px 0 rgb(0 0 0 / 5%), 0 10px 24px rgb(0 0 0 / 6%);
+  --touch-min: 44px;
+  --cap-size: 52px;
+
   --font-kid: 'Fredoka', ui-rounded, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-adult: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --card-shadow: 0 6px 0 rgb(0 0 0 / 5%), 0 10px 24px rgb(0 0 0 / 6%);
-  --tapita: 52px;
 }
 
 /* ============ 2. Base ============ */
@@ -114,7 +135,7 @@ button {
   margin: 16px;
   padding: 12px 16px;
   border-radius: 14px;
-  background: #fff;
+  background: var(--white);
   font-family: var(--font-adult);
   text-align: center;
 }
@@ -164,16 +185,16 @@ button {
 .chunky {
   border: 0;
   border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 7px 0 #d9d2c2;
+  background: var(--white);
+  box-shadow: 0 7px 0 var(--edge);
 }
 .chunky:active {
   transform: translateY(4px);
-  box-shadow: 0 3px 0 #d9d2c2;
+  box-shadow: 0 3px 0 var(--edge);
 }
 .chunky--blue {
   background: var(--blue);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 7px 0 var(--blue-dark);
 }
 .chunky--blue:active {
@@ -208,7 +229,7 @@ button {
   margin: 0;
   padding: 14px 20px;
   border-radius: 24px;
-  background: #fff;
+  background: var(--white);
   font-weight: 600;
   font-size: 22px;
   box-shadow: 0 5px 16px rgb(0 0 0 / 8%);
@@ -221,7 +242,7 @@ button {
   top: 50%;
   margin-top: -10px;
   border: 10px solid transparent;
-  border-right: 14px solid #fff;
+  border-right: 14px solid var(--white);
   border-left: 0;
 }
 
@@ -230,8 +251,8 @@ button {
   position: relative;
   flex: none;
   display: inline-block;
-  width: var(--tapita);
-  height: var(--tapita);
+  width: var(--cap-size);
+  height: var(--cap-size);
   border-radius: 50%;
   background: radial-gradient(circle at 30% 30%, var(--shine), var(--base));
   border: 3px dashed rgb(255 255 255 / 45%);
@@ -243,14 +264,14 @@ button {
     opacity 0.2s;
 }
 .tapita--small {
-  --tapita: 40px;
+  --cap-size: 40px;
 }
 .tapita--mini {
-  --tapita: 30px;
+  --cap-size: 30px;
   border-width: 2px;
 }
 .tapita--chip {
-  --tapita: 56px;
+  --cap-size: 56px;
 }
 .tapita.is-counted {
   outline: 4px solid var(--gold);
@@ -293,7 +314,7 @@ button {
   font-weight: 700;
   font-size: 30px;
   color: #d9480f;
-  text-shadow: 0 3px 0 #fff;
+  text-shadow: 0 3px 0 var(--white);
 }
 .logo__accent {
   color: var(--blue);
@@ -326,13 +347,13 @@ button {
   padding: 10px 6px;
   border: 0;
   border-radius: 18px;
-  background: #fff;
+  background: var(--white);
   color: var(--ink);
-  box-shadow: 0 6px 0 #e6dcc6;
+  box-shadow: 0 6px 0 var(--edge-soft);
 }
 .level:active {
   transform: translateY(3px);
-  box-shadow: 0 3px 0 #e6dcc6;
+  box-shadow: 0 3px 0 var(--edge-soft);
 }
 .level.is-selected {
   background: #ffb020;
@@ -372,7 +393,7 @@ button {
   border: 0;
   border-radius: 28px;
   background: var(--card-main);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 7px 0 var(--card-dark);
   text-align: left;
 }
@@ -389,7 +410,7 @@ button {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white);
   color: var(--card-main);
 }
 .mode-card__text {
@@ -444,7 +465,7 @@ button {
   height: 58px;
   padding: 4px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white);
   box-shadow: 0 4px 0 rgb(0 0 0 / 8%);
 }
 .avatar.is-hopping {
@@ -455,7 +476,7 @@ button {
   position: relative;
   flex: 1;
   height: 26px;
-  border: 4px solid #fff;
+  border: 4px solid var(--white);
   border-radius: 13px;
   background: rgb(255 255 255 / 70%);
   overflow: hidden;
@@ -487,7 +508,7 @@ button {
   padding: 5px 16px 5px 5px;
   border-radius: 999px;
   background: var(--theme-strong);
-  color: #fff;
+  color: var(--white);
   box-shadow: 0 4px 0 var(--theme-strong-dark);
   font-weight: 600;
   font-size: 16px;
@@ -499,7 +520,7 @@ button {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--white);
   color: var(--theme-main);
 }
 
@@ -514,14 +535,14 @@ button {
   padding: 8px 20px 8px 8px;
   border: 0;
   border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 5px 0 #e6dcc6;
+  background: var(--white);
+  box-shadow: 0 5px 0 var(--edge-soft);
   font-weight: 600;
   font-size: 20px;
 }
 .question:active {
   transform: translateY(3px);
-  box-shadow: 0 2px 0 #e6dcc6;
+  box-shadow: 0 2px 0 var(--edge-soft);
 }
 .question__speaker {
   flex: none;
@@ -550,7 +571,7 @@ button {
 .prompt-card {
   padding: 18px;
   border-radius: 28px;
-  background: #fff;
+  background: var(--white);
   box-shadow: var(--card-shadow);
 }
 .prompt-card__line {
@@ -601,7 +622,7 @@ button {
 }
 .result-box.is-filled {
   border-style: solid;
-  background: #fff;
+  background: var(--white);
 }
 .result-box__number {
   font-weight: 700;
@@ -616,12 +637,12 @@ button {
   place-items: center;
   min-height: 150px;
   padding: 40px 12px 26px;
-  border: 7px solid #c98b45;
+  border: 7px solid var(--wood-edge);
   border-radius: 30px;
-  background: repeating-linear-gradient(90deg, #f3c98d 0 58px, #e9b673 58px 61px);
+  background: repeating-linear-gradient(90deg, var(--wood-light) 0 58px, var(--wood-dark) 58px 61px);
   box-shadow:
     inset 0 4px 0 rgb(255 255 255 / 35%),
-    0 6px 0 #a96f30;
+    0 6px 0 var(--wood-shadow);
   overflow: hidden;
 }
 .table__row {
@@ -640,8 +661,8 @@ button {
 
 .hole {
   flex: none;
-  width: var(--tapita);
-  height: var(--tapita);
+  width: var(--cap-size);
+  height: var(--cap-size);
   border-radius: 50%;
   border: 3px dashed rgb(120 70 20 / 55%);
   background: rgb(255 255 255 / 30%);
@@ -718,7 +739,7 @@ button {
 }
 .answer[aria-disabled='true']:active {
   transform: none;
-  box-shadow: 0 7px 0 #d9d2c2;
+  box-shadow: 0 7px 0 var(--edge);
 }
 .answer__word {
   font-weight: 600;
@@ -905,7 +926,7 @@ button {
   padding: 0 16px;
   border: 2px solid var(--line);
   border-radius: 999px;
-  background: #fff;
+  background: var(--white);
   font-size: 15px;
   cursor: pointer;
 }
@@ -929,21 +950,21 @@ button {
   padding: 0 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--white);
   font-family: var(--font-adult);
   font-size: 15px;
 }
 .settings__button--primary {
   border: 0;
   background: var(--blue);
-  color: #fff;
+  color: var(--white);
   font-weight: 600;
 }
 
 /* ============ 8. Pantallas chicas y grandes ============ */
 @media (max-width: 519px) {
   :root {
-    --tapita: 48px;
+    --cap-size: 48px;
   }
   .table__row {
     gap: 16px;
@@ -956,7 +977,7 @@ button {
   }
   .table__row--tight .tapita,
   .table__row--tight .hole {
-    --tapita: 40px;
+    --cap-size: 40px;
   }
   .prompt-card {
     padding: 14px;
@@ -1002,7 +1023,7 @@ button {
     display: none;
   }
   .tapita--chip {
-    --tapita: 48px;
+    --cap-size: 48px;
   }
 }
 
@@ -1027,7 +1048,7 @@ button {
     grid-template-columns: repeat(5, 1fr);
   }
   :root {
-    --tapita: 64px;
+    --cap-size: 64px;
   }
   .game-layout {
     grid-template-columns: 3fr 2fr;

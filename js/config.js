@@ -64,7 +64,7 @@ export const ANSWER_COLORS = ['#9061f9', '#4f8ef7', '#d6336c'];
 export const THEMES = {
   home: {
     main: '#ffa23a',
-    dark: '#e07f12',
+    dark: '#af630e',
     strong: '#c2410c',
     strongDark: '#9a3412',
     light: '#fff0d6',
@@ -84,7 +84,7 @@ export const THEMES = {
   },
   coral: {
     main: '#ff7a4d',
-    dark: '#e0582b',
+    dark: '#ca4f27',
     strong: '#c2410c',
     strongDark: '#9a3412',
     light: '#ffe3d6',
@@ -94,7 +94,7 @@ export const THEMES = {
   },
   pink: {
     main: '#ff5d8f',
-    dark: '#df3b6e',
+    dark: '#d6396a',
     strong: '#be185d',
     strongDark: '#9d174d',
     light: '#ffdbe7',
